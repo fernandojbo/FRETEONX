@@ -80,9 +80,9 @@
   </div>
 
   <script>
-    // Configuração do Supabase
-    const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13'; // Cole sua chave anon/public aqui
+    // Configuração do Supabase (URL ajustada com o seu Project ID correto)
+    const SUPABASE_URL = 'https://xnfsmauxjiptnxkjdbz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13'; // Cole aqui a sua 'Publishable key' (começa com sb_publishable_...)
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function aplicarMascaraCep(input) {
@@ -203,13 +203,13 @@
       const cepDestinoStr = inputCepDestino.value;
       const cepDestinoInt = parseInt(cepDestinoStr.replace(/\D/g, ""), 10);
 
-      // Busca dados na tabela de frete do Supabase
+      // Busca dados na tabela de frete do Supabase (nome garantido com underline)
       const { data: matrizTabelas, error } = await supabaseClient.from('tabelas_frete').select('*');
 
       esconderCarregamento();
 
       if (error || !matrizTabelas || matrizTabelas.length === 0) {
-        alert('Erro ao carregar as tabelas de frete do Supabase.');
+        alert('Erro ao carregar as tabelas de frete do Supabase: ' + (error ? error.message : 'Tabela vazia'));
         return;
       }
 
