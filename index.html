@@ -32,11 +32,11 @@
       
       <div>
         <label class="block text-xs font-semibold text-slate-600 mb-1">DISTÂNCIA (KM) <span class="text-slate-400 font-normal">(Opcional)</span></label>
-        <input type="number" id="distanciaKm" placeholder="Distância" class="w-full p-2 border rounded-lg">
+        <input type="text" id="distanciaKm" placeholder="Distância" class="w-full p-2 border rounded-lg" oninput="this.value = this.value.replace(',', '.')">
       </div>
       <div>
         <label class="block text-xs font-semibold text-slate-600 mb-1">FATOR CUBAGEM</label>
-        <input type="number" id="fatorCubagem" value="300" placeholder="Fator" class="w-full p-2 border rounded-lg transition-colors" oninput="limparErro(this)">
+        <input type="text" id="fatorCubagem" value="300" placeholder="Fator" class="w-full p-2 border rounded-lg transition-colors" oninput="this.value = this.value.replace(',', '.'); limparErro(this)">
       </div>
       <div class="col-span-2">
         <label class="block text-xs font-semibold text-slate-600 mb-1">VALOR DA CARGA (R$)</label>
@@ -58,11 +58,11 @@
         </thead>
         <tbody id="listaVolumes">
           <tr class="volume-row">
-            <td class="pt-2 pr-2"><input type="number" class="vol-qtd w-12 border p-1 rounded text-center transition-colors" value="1" oninput="limparErro(this)"></td>
-            <td class="pt-2 pr-2"><input type="number" class="vol-peso w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
-            <td class="pt-2 pr-2"><input type="number" class="vol-comp w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
-            <td class="pt-2 pr-2"><input type="number" class="vol-larg w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
-            <td class="pt-2"><input type="number" class="vol-alt w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
+            <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1 rounded text-center transition-colors" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+            <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+            <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+            <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+            <td class="pt-2"><input type="text" class="vol-alt w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
           </tr>
         </tbody>
       </table>
@@ -80,10 +80,18 @@
   </div>
 
   <script>
-    // Configuração do Supabase (URL ajustada com o seu Project ID correto)
+    // Configuração do Supabase
     const SUPABASE_URL = 'https://xnfsmauxjiptnxkjdbz.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13'; // Cole aqui a sua 'Publishable key' (começa com sb_publishable_...)
+    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Função auxiliar universal para converter valores monetários ou com vírgula para número JS (float) seguro para o Supabase
+    function parseNumeroSeguro(valor) {
+      if (typeof valor === 'number') return valor;
+      if (!valor) return 0;
+      const limpo = valor.toString().trim().replace(/\./g, '').replace(',', '.');
+      return parseFloat(limpo) || 0;
+    }
 
     function aplicarMascaraCep(input) {
       let valor = input.value.replace(/\D/g, '');
@@ -133,11 +141,11 @@
       const row = document.createElement('tr');
       row.className = 'volume-row';
       row.innerHTML = `
-        <td class="pt-2 pr-2"><input type="number" class="vol-qtd w-12 border p-1 rounded text-center transition-colors" value="1" oninput="limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="number" class="vol-peso w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="number" class="vol-comp w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="number" class="vol-larg w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
-        <td class="pt-2"><input type="number" class="vol-alt w-full border p-1 rounded transition-colors" placeholder="0" oninput="limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1 rounded text-center transition-colors" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2"><input type="text" class="vol-alt w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
       `;
       container.appendChild(row);
     }
@@ -152,7 +160,7 @@
       if (inputCepDestino.value.replace(/\D/g, '').length !== 8) { marcarErro(inputCepDestino); temErro = true; }
 
       const inputFator = document.getElementById('fatorCubagem');
-      if (!inputFator.value || parseFloat(inputFator.value) <= 0) { marcarErro(inputFator); temErro = true; }
+      if (!inputFator.value || parseNumeroSeguro(inputFator.value) <= 0) { marcarErro(inputFator); temErro = true; }
 
       const inputValorCarga = document.getElementById('valorCarga');
       if (!inputValorCarga.value.trim()) { marcarErro(inputValorCarga); temErro = true; }
@@ -162,11 +170,11 @@
       let volumesArray = [];
 
       rows.forEach(r => {
-        const q = parseFloat(r.querySelector('.vol-qtd').value);
-        const p = parseFloat(r.querySelector('.vol-peso').value);
-        const c = parseFloat(r.querySelector('.vol-comp').value);
-        const l = parseFloat(r.querySelector('.vol-larg').value);
-        const a = parseFloat(r.querySelector('.vol-alt').value);
+        const q = parseNumeroSeguro(r.querySelector('.vol-qtd').value);
+        const p = parseNumeroSeguro(r.querySelector('.vol-peso').value);
+        const c = parseNumeroSeguro(r.querySelector('.vol-comp').value);
+        const l = parseNumeroSeguro(r.querySelector('.vol-larg').value);
+        const a = parseNumeroSeguro(r.querySelector('.vol-alt').value);
 
         if (isNaN(q) || q <= 0) { marcarErro(r.querySelector('.vol-qtd')); temErro = true; }
         if (isNaN(p) || p <= 0) { marcarErro(r.querySelector('.vol-peso')); temErro = true; }
@@ -194,16 +202,15 @@
       loading.classList.remove('hidden');
       resultadoDiv.classList.add('hidden');
 
-      const valorCargaNum = parseFloat(inputValorCarga.value.replace(/\./g, '').replace(',', '.'));
-      const distanciaKmNum = parseFloat(document.getElementById('distanciaKm').value) || 0;
-      const fatorCubagemNum = parseFloat(inputFator.value) || 300;
+      const valorCargaNum = parseNumeroSeguro(inputValorCarga.value);
+      const distanciaKmNum = parseNumeroSeguro(document.getElementById('distanciaKm').value);
+      const fatorCubagemNum = parseNumeroSeguro(inputFator.value) || 300;
 
       const pesoCubado = totalCubagem * fatorCubagemNum;
       const pesoTaxavel = Math.max(totalPeso, pesoCubado);
       const cepDestinoStr = inputCepDestino.value;
       const cepDestinoInt = parseInt(cepDestinoStr.replace(/\D/g, ""), 10);
 
-      // Busca dados na tabela de frete do Supabase (nome garantido com underline)
       const { data: matrizTabelas, error } = await supabaseClient.from('tabelas_frete').select('*');
 
       esconderCarregamento();
@@ -359,7 +366,7 @@
       loading.classList.remove('hidden');
 
       const numeroCotacaoGerada = 'COT-' + Math.floor(100000 + Math.random() * 900000);
-      const valorCargaNum = parseFloat(document.getElementById('valorCarga').value.replace(/\./g, '').replace(',', '.')) || 0;
+      const valorCargaNum = parseNumeroSeguro(document.getElementById('valorCarga').value);
 
       const dadosParaSalvar = {
         numero_cotacao: numeroCotacaoGerada,
@@ -372,8 +379,8 @@
         prazo: transportadoraObj.prazo,
         valor_carga: valorCargaNum,
         valor_frete: transportadoraObj.freteTotal,
-        distancia_km: parseFloat(document.getElementById('distanciaKm').value) || 0,
-        fator_cubagem: parseFloat(document.getElementById('fatorCubagem').value) || 300,
+        distancia_km: parseNumeroSeguro(document.getElementById('distanciaKm').value),
+        fator_cubagem: parseNumeroSeguro(document.getElementById('fatorCubagem').value) || 300,
         total_peso: transportadoraObj.totalPeso,
         total_cubagem: transportadoraObj.totalCubagem,
         volumes: transportadoraObj.volumes
