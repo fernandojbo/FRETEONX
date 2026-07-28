@@ -280,8 +280,9 @@
           const prazoEntrega = Number(faixaSelecionada.prazo_entrega) || 0;
           const pesoLimiteFaixa = Number(faixaSelecionada.peso_final) || 0;
 
-          let valorExcedente = pesoTaxavel > pesoLimiteFaixa ? (pesoTaxavel - pesoLimiteFaixa) * valorKgExcedente : 0;
-          const fretePesoTotal = Math.max(fretePesoBase, valorExcedente);
+          let pesoExcedido = pesoTaxavel > pesoLimiteFaixa ? (pesoTaxavel - pesoLimiteFaixa) : 0;
+let valorExcedente = pesoExcedido * valorKgExcedente;
+const fretePesoTotal = fretePesoBase + valorExcedente;
           const pedagio = Math.ceil(pesoTaxavel / 100) * pedagioPor100kg;
           const advalorem = (aliquotaAdvalorem / 100) * valorCargaNum;
           const gris = (aliquotaGris / 100) * valorCargaNum;
