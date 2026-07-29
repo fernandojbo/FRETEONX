@@ -281,11 +281,11 @@
           const pesoLimiteFaixa = Number(faixaSelecionada.peso_final) || 0;
 
           let valorExcedente = 0;
-if (pesoTaxavel > pesoLimiteFaixa) {
-  valorExcedente = pesoTaxavel * valorKgExcedente;
-}
+             if (pesoTaxavel > pesoLimiteFaixa) {
+               valorExcedente = pesoTaxavel * valorKgExcedente;
+            }
           const fretePesoTotal = Math.max(fretePesoBase, valorExcedente);
-          const pedagio = Math.ceil(pesoTaxavel / 100) * pedagioPor100kg;
+          const pedagio = (pesoTaxavel / 100) * pedagioPor100kg;
           const advalorem = (aliquotaAdvalorem / 100) * valorCargaNum;
           const gris = (aliquotaGris / 100) * valorCargaNum;
           const tas = tasFixo;
