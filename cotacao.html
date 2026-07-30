@@ -5,6 +5,36 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Importando o Cliente do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- Biblioteca do Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Inicialização segura
+    const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Função que verifica a sessão de forma assíncrona sem travar a página
+    async function verificarAutenticacao() {
+        try {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (error || !session) {
+                // Se não estiver logado, redireciona para o login
+                window.location.href = "index.html";
+            }
+        } catch (err) {
+            console.error("Erro ao verificar sessão:", err);
+            window.location.href = "index.html";
+        }
+    }
+
+    // Executa a verificação assim que o documento carregar
+    document.addEventListener("DOMContentLoaded", () => {
+        verificarAutenticacao();
+    });
+</script>
+  
+  
 </head>
 <body class="bg-slate-50 p-6">
   <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 relative">
