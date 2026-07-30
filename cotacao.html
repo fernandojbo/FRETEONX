@@ -1,26 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-  
-<!-- Biblioteca do Supabase JS -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-    const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function verificarSessao() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) {
-            // Se não estiver logado, expulsa de volta para a tela de login
-            window.location.href = "index.html";
-        }
-    }
-    verificarSessao();
-</script>
-
-
-  
   <base target="_top">
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Importando o Cliente do Supabase via CDN -->
