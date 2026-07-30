@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRETEONX - Login</title>
+    <!-- Tailwind CSS para estilização rápida e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca do Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-50 h-screen flex overflow-hidden">
+
+    <!-- Lado Esquerdo: Identidade Visual FRETEONX -->
+    <div class="hidden lg:flex lg:w-1/2 bg-slate-900 text-white flex-col justify-between p-12 relative">
+        <div class="flex items-center space-x-3">
+            <span class="text-xl font-bold tracking-wider">FRETEONX</span>
+        </div>
+        <div class="flex flex-col items-center text-center my-auto">
+            <!-- Ícone/Logo Minimalista -->
+            <div class="mb-6 bg-blue-600/20 p-6 rounded-2xl border border-blue-500/30">
+                <svg class="w-16 h-16 text-blue-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c621 0 1.125-.504 1.125-1.125V14.25m-17.25 4.5h10.5M3.375 5.25h17.25c.621 0 1.125.504 1.125 1.125v6.75c0 .621-.504 1.125-1.125 1.125H3.375c-.621 0-1.125-.504-1.125-1.125V6.375c0-.621.504-1.125 1.125-1.125z"></path>
+                </svg>
+            </div>
+            <h1 class="text-4xl font-extrabold tracking-tight mb-2">FRETEONX</h1>
+            <p class="text-slate-400 text-lg">você busca, a gente conecta</p>
+        </div>
+        <div class="text-xs text-slate-500">
+            © 2026 FRETEONX. Todos os direitos reservados.
+        </div>
+    </div>
+
+    <!-- Lado Direito: Formulário de Login -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Acessar sua conta</h2>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">E-mail</label>
+                    <input type="email5" id="email" required placeholder="exemplo@email.com" 
+                        class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Senha</label>
+                    <input type="password" id="password" required placeholder="••••••••" 
+                        class="w-full px-4 py-3 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent text-sm">
+                </div>
+
+                <div id="error-msg" class="text-red-500 text-sm hidden"></div>
+
+                <button type="submit" id="btn-submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition duration-200 shadow-md shadow-blue-500/20">
+                    Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de Integração com o Supabase -->
+    <script>
+        // Substitua pelas suas credenciais reais do Supabase (Painel do Supabase > Project Settings > API)
+        const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('login-form');
+        const errorMsg = document.getElementById('error-msg');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMsg.classList.add('hidden');
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Faz o login utilizando o Auth do Supabase
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                errorMsg.textContent = "Erro ao entrar: " + error.message;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Sucesso no login! Redireciona para o painel principal (crie depois a página painel.html)
+            alert("Login realizado com sucesso!");
+            window.location.href = "cotacao.html"; 
+        });
+    </script>
+</body>
+</html>
