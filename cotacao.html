@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
   <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRETEONX - Cotação</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Importando o Cliente do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -20,11 +23,22 @@
             if (error || !session) {
                 // Se não estiver logado, redireciona para a tela de login
                 window.location.href = "index.html";
+            } else {
+                // Exibe o email do usuário logado no menu lateral
+                const userEmailEl = document.getElementById('userEmailDisplay');
+                if (userEmailEl && session.user && session.user.email) {
+                    userEmailEl.innerText = session.user.email;
+                }
             }
         } catch (err) {
             console.error("Erro ao verificar sessão:", err);
             window.location.href = "index.html";
         }
+    }
+
+    async function encerrarSessao() {
+        await supabaseClient.auth.signOut();
+        window.location.href = "index.html";
     }
 
     // Executa a verificação de segurança assim que a página carrega
@@ -33,78 +47,117 @@
     });
   </script>
 </head>
-<body class="bg-slate-50 p-6">
-  <div class="max-w-xl mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100 relative">
-    
-    <!-- Tela de Carregamento (Overlay Sobreposta) -->
-    <div id="loadingArea" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
-      <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-      <p id="loadingText" class="text-sm font-bold text-slate-800 animate-pulse">Estamos buscando as melhores transportadoras...</p>
-      <p class="text-xs text-slate-500 mt-1">Isso pode levar alguns segundos.</p>
+<body class="bg-slate-100 min-h-screen flex flex-col md:flex-row">
+
+  <!-- MENU LATERAL ELEGANTE -->
+  <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-6 shadow-xl shrink-0">
+    <div>
+      <!-- Logo / Título -->
+      <div class="flex items-center gap-3 mb-8 px-2">
+        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-blue-500/30">F</div>
+        <div>
+          <h1 class="text-white font-extrabold text-base tracking-wider">FRETEONX</h1>
+          <p class="text-[10px] text-slate-400">Sistema de Gestão de Fretes</p>
+        </div>
+      </div>
+
+      <!-- Links de Navegação -->
+      <nav class="space-y-1.5">
+        <a href="cotacao.html" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-blue-600/20 transition">
+          <span>📦</span> Nova Cotação
+        </a>
+        <a href="historico.html" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition">
+          <span>📋</span> Histórico de Cotações
+        </a>
+      </nav>
     </div>
 
-    <h2 class="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Informações da Cotação</h2>
-    
-    <div class="grid grid-cols-2 gap-4 mb-6">
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">CEP ORIGEM</label>
-        <input type="text" id="cepOrigem" placeholder="00000-000" class="w-full p-2 border rounded-lg transition-colors" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('origem')">
-        <span id="cidadeOrigem" class="text-xs text-blue-600 mt-1 block font-bold min-h-[16px]"></span>
+    <!-- Rodapé do Menu Lateral (Usuário Logado + Sair) -->
+    <div class="pt-6 border-t border-slate-800/80 space-y-4">
+      <div class="px-2">
+        <p class="text-[10px] text-slate-500 uppercase font-semibold">Usuário Conectado</p>
+        <p id="userEmailDisplay" class="text-xs font-bold text-slate-200 truncate mt-0.5" title="Carregando...">Carregando...</p>
       </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">CEP DESTINO</label>
-        <input type="text" id="cepDestino" placeholder="00000-000" class="w-full p-2 border rounded-lg transition-colors" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('destino')">
-        <span id="cidadeDestino" class="text-xs text-blue-600 mt-1 block font-bold min-h-[16px]"></span>
-      </div>
+      <button onclick="encerrarSessao()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600/20 hover:text-red-400 hover:border-red-500/30 border border-transparent text-slate-300 text-xs font-bold py-2.5 px-4 rounded-xl transition">
+        <span>🚪</span> Encerrar Sessão
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL (CÉREBRO INTACTO) -->
+  <main class="flex-1 p-6 md:p-10 flex items-start justify-center">
+    <div class="w-full max-w-xl bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 relative">
       
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">DISTÂNCIA (KM) <span class="text-slate-400 font-normal">(Opcional)</span></label>
-        <input type="text" id="distanciaKm" placeholder="Distância" class="w-full p-2 border rounded-lg" oninput="this.value = this.value.replace(',', '.')">
+      <!-- Tela de Carregamento (Overlay Sobreposta) -->
+      <div id="loadingArea" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p id="loadingText" class="text-sm font-bold text-slate-800 animate-pulse">Estamos buscando as melhores transportadoras...</p>
+        <p class="text-xs text-slate-500 mt-1">Isso pode levar alguns segundos.</p>
       </div>
-      <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1">FATOR CUBAGEM</label>
-        <input type="text" id="fatorCubagem" value="300" placeholder="Fator" class="w-full p-2 border rounded-lg transition-colors" oninput="this.value = this.value.replace(',', '.'); limparErro(this)">
+
+      <h2 class="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Informações da Cotação</h2>
+      
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">CEP ORIGEM</label>
+          <input type="text" id="cepOrigem" placeholder="00000-000" class="w-full p-2 border rounded-lg transition-colors text-sm" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('origem')">
+          <span id="cidadeOrigem" class="text-xs text-blue-600 mt-1 block font-bold min-h-[16px]"></span>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">CEP DESTINO</label>
+          <input type="text" id="cepDestino" placeholder="00000-000" class="w-full p-2 border rounded-lg transition-colors text-sm" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('destino')">
+          <span id="cidadeDestino" class="text-xs text-blue-600 mt-1 block font-bold min-h-[16px]"></span>
+        </div>
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">DISTÂNCIA (KM) <span class="text-slate-400 font-normal">(Opcional)</span></label>
+          <input type="text" id="distanciaKm" placeholder="Distância" class="w-full p-2 border rounded-lg text-sm" oninput="this.value = this.value.replace(',', '.')">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">FATOR CUBAGEM</label>
+          <input type="text" id="fatorCubagem" value="300" placeholder="Fator" class="w-full p-2 border rounded-lg transition-colors text-sm" oninput="this.value = this.value.replace(',', '.'); limparErro(this)">
+        </div>
+        <div class="col-span-2">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">VALOR DA CARGA (R$)</label>
+          <input type="text" id="valorCarga" placeholder="0,00" class="w-full p-2 border rounded-lg transition-colors text-sm" oninput="aplicarMascaraMoeda(this); limparErro(this);">
+        </div>
       </div>
-      <div class="col-span-2">
-        <label class="block text-xs font-semibold text-slate-600 mb-1">VALOR DA CARGA (R$)</label>
-        <input type="text" id="valorCarga" placeholder="0,00" class="w-full p-2 border rounded-lg transition-colors" oninput="aplicarMascaraMoeda(this); limparErro(this);">
+
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold text-slate-600 mb-2 uppercase">Volumes</h3>
+        <table class="w-full text-xs text-left mb-2">
+          <thead class="text-slate-400 border-b">
+            <tr>
+              <th class="pb-2 w-16">Qtd</th>
+              <th class="pb-2">Peso(kg)</th>
+              <th class="pb-2">C(cm)</th>
+              <th class="pb-2">L(cm)</th>
+              <th class="pb-2">A(cm)</th>
+            </tr>
+          </thead>
+          <tbody id="listaVolumes">
+            <tr class="volume-row">
+              <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1.5 rounded text-center transition-colors text-xs" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+              <td class="pt-2"><input type="text" class="vol-alt w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+            </tr>
+          </tbody>
+        </table>
+        <button onclick="adicionarLinha()" class="mt-2 text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded font-semibold text-slate-700 transition">+ Adicionar Item</button>
+      </div>
+
+      <button id="btnCotar" onclick="executar()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
+        <span>Fazer Cotação</span>
+      </button>
+
+      <div id="resultadoArea" class="mt-6 hidden">
+        <h3 class="font-bold text-slate-800 mb-3">Opções de Frete</h3>
+        <div id="tabelaResultados" class="space-y-2"></div>
       </div>
     </div>
-
-    <div class="mb-6">
-      <h3 class="text-sm font-semibold text-slate-600 mb-2 uppercase">Volumes</h3>
-      <table class="w-full text-xs text-left mb-2">
-        <thead class="text-slate-400 border-b">
-          <tr>
-            <th class="pb-2 w-16">Qtd</th>
-            <th class="pb-2">Peso(kg)</th>
-            <th class="pb-2">C(cm)</th>
-            <th class="pb-2">L(cm)</th>
-            <th class="pb-2">A(cm)</th>
-          </tr>
-        </thead>
-        <tbody id="listaVolumes">
-          <tr class="volume-row">
-            <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1 rounded text-center transition-colors" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-            <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-            <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-            <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-            <td class="pt-2"><input type="text" class="vol-alt w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-          </tr>
-        </tbody>
-      </table>
-      <button onclick="adicionarLinha()" class="mt-2 text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded font-semibold text-slate-700 transition">+ Adicionar Item</button>
-    </div>
-
-    <button id="btnCotar" onclick="executar()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
-      <span>Fazer Cotação</span>
-    </button>
-
-    <div id="resultadoArea" class="mt-6 hidden">
-      <h3 class="font-bold text-slate-800 mb-3">Opções de Frete</h3>
-      <div id="tabelaResultados" class="space-y-2"></div>
-    </div>
-  </div>
+  </main>
 
   <script>
     // Função auxiliar universal para converter valores monetários ou com vírgula para número JS (float) seguro para o Supabase
@@ -163,11 +216,11 @@
       const row = document.createElement('tr');
       row.className = 'volume-row';
       row.innerHTML = `
-        <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1 rounded text-center transition-colors" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2"><input type="text" class="vol-alt w-full border p-1 rounded transition-colors" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1.5 rounded text-center transition-colors text-xs" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2"><input type="text" class="vol-alt w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
       `;
       container.appendChild(row);
     }
@@ -303,9 +356,9 @@
           const pesoLimiteFaixa = Number(faixaSelecionada.peso_final) || 0;
 
           let valorExcedente = 0;
-             if (pesoTaxavel > pesoLimiteFaixa) {
-               valorExcedente = pesoTaxavel * valorKgExcedente;
-            }
+          if (pesoTaxavel > pesoLimiteFaixa) {
+            valorExcedente = pesoTaxavel * valorKgExcedente;
+          }
           const fretePesoTotal = Math.max(fretePesoBase, valorExcedente);
           const pedagio = (pesoTaxavel / 100) * pedagioPor100kg;
           const advalorem = (aliquotaAdvalorem / 100) * valorCargaNum;
