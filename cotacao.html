@@ -6,17 +6,19 @@
   <!-- Importando o Cliente do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- SCRIPT DE SEGURANÇA (Protege contra acesso direto por link) -->
+  <!-- SCRIPT DE SEGURANÇA E INICIALIZAÇÃO ÚNICA -->
   <script>
     const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
+    
+    // Instancia o cliente do Supabase globalmente para a página toda
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function verificarAutenticacao() {
         try {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (error || !session) {
-                // Se não estiver logado, expulsa de volta para a tela de login
+                // Se não estiver logado, redireciona para a tela de login
                 window.location.href = "index.html";
             }
         } catch (err) {
@@ -25,7 +27,7 @@
         }
     }
 
-    // Executa a verificação assim que a página carregar
+    // Executa a verificação de segurança assim que a página carrega
     document.addEventListener("DOMContentLoaded", () => {
         verificarAutenticacao();
     });
@@ -105,11 +107,6 @@
   </div>
 
   <script>
-    // Configuração do Supabase
-    const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
     // Função auxiliar universal para converter valores monetários ou com vírgula para número JS (float) seguro para o Supabase
     function parseNumeroSeguro(valor) {
       if (typeof valor === 'number') return valor;
