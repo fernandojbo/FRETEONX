@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRETEONX - Histórico de Cotações</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Importando o Cliente do Supabase via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- SCRIPT DE SEGURANÇA E INICIALIZAÇÃO -->
+  <script>
+    const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function verificarAutenticacao() {
+        try {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (error || !session) {
+                window.location.href = "index.html";
+            }
+        } catch (err) {
+            console.error("Erro ao verificar sessão:", err);
+            window.location.href = "index.html";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        verificarAutenticacao();
+        carregarHistorico();
+    });
+  </script>
+
+  <style>
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #comprovanteModal, #comprovanteModal * {
+        visibility: visible;
+      }
+      #comprovanteModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 p-6">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+    
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+      <div>
+        <h2 class="text-xl font-bold text-slate-800">Histórico de Cotações</h2>
+        <p class="text-xs text-slate-500">Clique em qualquer número de cotação para ver o comprovante completo.</p>
+      </div>
+      <a href="cotacao.html" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded-xl transition">
+        Nova Cotação
+      </a>
+    </div>
+
+    <!-- Tabela da Lista -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="text-xs text-slate-400 border-b uppercase">
+            <th class="pb-3 px-2">Nº Cotação</th>
+            <th class="pb-3 px-2">Data</th>
+            <th class="pb-3 px-2">Transportadora</th>
+            <th class="pb-3 px-2 text-right">Frete Total</th>
+          </tr>
+        </thead>
+        <tbody id="listaHistorico" class="text-sm divide-y divide-slate-100">
+          <tr>
+            <td colspan="4" class="text-center py-6 text-slate-400 text-xs">Carregando histórico...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- MODAL DE COMPROVANTE -->
+  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div id="comprovanteModal" class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 p-8 relative space-y-6 my-8">
+      
+      <!-- Cabeçalho do Comprovante -->
+      <div class="flex justify-between items-start border-b pb-4">
+        <div>
+          <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md uppercase tracking-wider">Comprovante de Frete</span>
+          <h3 id="modalNumCotacao" class="text-lg font-extrabold text-slate-900 mt-2">COT-000000</h3>
+          <p id="modalData" class="text-xs text-slate-500">Data: 00/00/0000</p>
+        </div>
+        <button onclick="fecharModal()" class="no-print text-slate-400 hover:text-slate-600 font-bold text-lg p-2">✕</button>
+      </div>
+
+      <!-- Rotas e Transportadora -->
+      <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
+        <div>
+          <p class="text-slate-400 font-semibold">ORIGEM</p>
+          <p id="modalOrigem" class="font-bold text-slate-800 text-sm mt-0.5">-</p>
+          <p id="modalCepOrigem" class="text-slate-500 text-[11px]">-</p>
+        </div>
+        <div>
+          <p class="text-slate-400 font-semibold">DESTINO</p>
+          <p id="modalDestino" class="font-bold text-slate-800 text-sm mt-0.5">-</p>
+          <p id="modalCepDestino" class="text-slate-500 text-[11px]">-</p>
+        </div>
+      </div>
+
+      <!-- Informações Gerais do Serviço -->
+      <div class="grid grid-cols-3 gap-3 text-center text-xs">
+        <div class="bg-blue-50/50 p-3 rounded-xl border border-blue-100">
+          <p class="text-slate-400 font-semibold">Transportadora</p>
+          <p id="modalTransportadora" class="font-bold text-blue-900 text-sm mt-1">-</p>
+        </div>
+        <div class="bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+          <p class="text-slate-400 font-semibold">Prazo de Entrega</p>
+          <p id="modalPrazo" class="font-bold text-amber-900 text-sm mt-1">-</p>
+        </div>
+        <div class="bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+          <p class="text-slate-400 font-semibold">Valor da Carga</p>
+          <p id="modalValorCarga" class="font-bold text-emerald-900 text-sm mt-1">R$ 0,00</p>
+        </div>
+      </div>
+
+      <!-- Tabela de Volumes Detalhados -->
+      <div>
+        <h4 class="text-xs font-bold text-slate-600 mb-2 uppercase">Volumes da Carga</h4>
+        <div class="border rounded-xl overflow-hidden">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-50 text-slate-400 border-b">
+              <tr>
+                <th class="p-2 text-center">Qtd</th>
+                <th class="p-2">Peso Unit.</th>
+                <th class="p-2">Comprimento</th>
+                <th class="p-2">Largura</th>
+                <th class="p-2">Altura</th>
+              </tr>
+            </thead>
+            <tbody id="modalListaVolumes" class="divide-y divide-slate-100">
+              <!-- Preenchido via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Rodapé com Valor Total e Botão de Impressão -->
+      <div class="flex justify-between items-center pt-4 border-t">
+        <div>
+          <p class="text-xs text-slate-400 uppercase font-semibold">Valor Total do Frete</p>
+          <p id="modalValorFrete" class="text-2xl font-extrabold text-blue-600">R$ 0,00</p>
+        </div>
+        <button onclick="window.print()" class="no-print bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-5 py-3 rounded-xl transition flex items-center gap-2">
+          🖨️ Imprimir Relatório
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let cacheCotacoes = [];
+
+    async function carregarHistorico() {
+      const { data, error } = await supabaseClient
+        .from('cotacoes_historico')
+        .select('*')
+        .order('criado_em', { ascending: false });
+
+      const tbody = document.getElementById('listaHistorico');
+      tbody.innerHTML = '';
+
+      if (error) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Erro ao carregar histórico: ${error.message}</td></tr>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs">Nenhuma cotação encontrada no histórico.</td></tr>`;
+        return;
+      }
+
+      cacheCotacoes = data;
+
+      data.forEach(cotacao => {
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50/80 transition cursor-pointer" onclick="abrirDetalhes('${cotacao.id}')">
+            <td class="py-3 px-2 font-bold text-blue-600 underline">${cotacao.numero_cotacao}</td>
+            <td class="py-3 px-2 text-slate-600">${cotacao.data}</td>
+            <td class="py-3 px-2 text-slate-800 font-medium">${cotacao.transportadora}</td>
+            <td class="py-3 px-2 text-right font-extrabold text-slate-900">R$ ${Number(cotacao.valor_frete || 0).toFixed(2)}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function abrirDetalhes(id) {
+      const cotacao = cacheCotacoes.find(c => c.id === id);
+      if (!cotacao) return;
+
+      document.getElementById('modalNumCotacao').innerText = cotacao.numero_cotacao;
+      document.getElementById('modalData').innerText = `Data da Cotação: ${cotacao.data}`;
+      document.getElementById('modalOrigem').innerText = cotacao.cidade_origem || 'Não informada';
+      document.getElementById('modalCepOrigem').innerText = `CEP: ${cotacao.cep_origem || '-'}`;
+      document.getElementById('modalDestino').innerText = cotacao.cidade_destino || 'Não informada';
+      document.getElementById('modalCepDestino').innerText = `CEP: ${cotacao.cep_destino || '-'}`;
+      document.getElementById('modalTransportadora').innerText = cotacao.transportadora;
+      document.getElementById('modalPrazo').innerText = `${cotacao.prazo || 0} dias úteis`;
+      document.getElementById('modalValorCarga').innerText = `R$ ${Number(cotacao.valor_carga || 0).toFixed(2)}`;
+      document.getElementById('modalValorFrete').innerText = `R$ ${Number(cotacao.valor_frete || 0).toFixed(2)}`;
+
+      // Monta a tabela de volumes detalhados vindos do JSONB
+      const tbodyVolumes = document.getElementById('modalListaVolumes');
+      tbodyVolumes.innerHTML = '';
+
+      if (cotacao.volumes && Array.isArray(cotacao.volumes)) {
+        cotacao.volumes.forEach(v => {
+          tbodyVolumes.innerHTML += `
+            <tr>
+              <td class="p-2 text-center font-bold">${v.qtd}x</td>
+              <td class="p-2">${v.peso} kg</td>
+              <td class="p-2">${v.comp} cm</td>
+              <td class="p-2">${v.larg} cm</td>
+              <td class="p-2">${v.alt} cm</td>
+            </tr>
+          `;
+        });
+      } else {
+        tbodyVolumes.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">Nenhum detalhe de volume registrado.</td></tr>`;
+      }
+
+      document.getElementById('modalDetalhes').classList.remove('hidden');
+    }
+
+    function fecharModal() {
+      document.getElementById('modalDetalhes').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
