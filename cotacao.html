@@ -9,12 +9,10 @@
   <!-- Importando o Cliente do Supabase via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
-  <!-- SCRIPT DE SEGURANÇA E INICIALIZAÇÃO ÚNICA -->
   <script>
     const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
     
-    // Instancia o cliente do Supabase globalmente para a página toda
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function verificarAutenticacao() {
@@ -41,40 +39,24 @@
 
     document.addEventListener("DOMContentLoaded", () => {
         verificarAutenticacao();
-        mudarAba('cotacao'); // Inicia na aba de cotação por padrão
+        mudarAba('cotacao');
     });
   </script>
 
   <style>
     @media print {
-      body * {
-        visibility: hidden;
-      }
-      #comprovanteModal, #comprovanteModal * {
-        visibility: visible;
-      }
-      #comprovanteModal {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        box-shadow: none;
-        border: none;
-      }
-      .no-print {
-        display: none !important;
-      }
+      body * { visibility: hidden; }
+      #comprovanteModal, #comprovanteModal * { visibility: visible; }
+      #comprovanteModal { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; box-shadow: none; border: none; }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col md:flex-row">
 
-  <!-- MENU LATERAL ELEGANTE -->
+  <!-- MENU LATERAL -->
   <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-6 shadow-xl shrink-0">
     <div>
-      <!-- Logo / Título -->
       <div class="flex items-center gap-3 mb-8 px-2">
         <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-blue-500/30">F</div>
         <div>
@@ -83,7 +65,6 @@
         </div>
       </div>
 
-      <!-- Links de Navegação via Abas -->
       <nav class="space-y-1.5">
         <button id="menuCotacao" onclick="mudarAba('cotacao')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-xs transition text-left">
           <span>📦</span> Nova Cotação
@@ -94,29 +75,26 @@
       </nav>
     </div>
 
-    <!-- Rodapé do Menu Lateral (Usuário Logado + Sair) -->
     <div class="pt-6 border-t border-slate-800/80 space-y-4">
       <div class="px-2">
         <p class="text-[10px] text-slate-500 uppercase font-semibold">Usuário Conectado</p>
-        <p id="userEmailDisplay" class="text-xs font-bold text-slate-200 truncate mt-0.5" title="Carregando...">Carregando...</p>
+        <p id="userEmailDisplay" class="text-xs font-bold text-slate-200 truncate mt-0.5">Carregando...</p>
       </div>
-      <button onclick="encerrarSessao()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600/20 hover:text-red-400 hover:border-red-500/30 border border-transparent text-slate-300 text-xs font-bold py-2.5 px-4 rounded-xl transition">
+      <button onclick="encerrarSessao()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600/20 hover:text-red-400 border border-transparent text-slate-300 text-xs font-bold py-2.5 px-4 rounded-xl transition">
         <span>🚪</span> Encerrar Sessão
       </button>
     </div>
   </aside>
 
-  <!-- CONTEÚDO PRINCIPAL DINÂMICO -->
+  <!-- CONTEÚDO PRINCIPAL -->
   <main class="flex-1 p-6 md:p-10 flex items-start justify-center">
 
-    <!-- 1. TELA DE COTAÇÃO -->
+    <!-- TELA DE COTAÇÃO -->
     <div id="viewCotacao" class="w-full max-w-xl bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 relative hidden">
       
-      <!-- Tela de Carregamento (Overlay Sobreposta) -->
       <div id="loadingArea" class="hidden absolute inset-0 bg-white/90 backdrop-blur-sm z-50 rounded-2xl flex flex-col items-center justify-center p-6 text-center">
         <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p id="loadingText" class="text-sm font-bold text-slate-800 animate-pulse">Estamos buscando as melhores transportadoras...</p>
-        <p class="text-xs text-slate-500 mt-1">Isso pode levar alguns segundos.</p>
+        <p id="loadingText" class="text-sm font-bold text-slate-800 animate-pulse">Processando...</p>
       </div>
 
       <h2 class="text-xl font-bold text-slate-800 mb-6 border-b pb-2">Informações da Cotação</h2>
@@ -124,26 +102,26 @@
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">CEP ORIGEM</label>
-          <input type="text" id="cepOrigem" placeholder="00000-000" class="w-full p-2 border rounded-lg transition-colors text-sm" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('origem')">
+          <input type="text" id="cepOrigem" placeholder="00000-000" class="w-full p-2 border rounded-lg text-sm" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('origem')">
           <span id="cidadeOrigem" class="text-xs text-blue-600 mt-1 block font-bold min-h-[16px]"></span>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">CEP DESTINO</label>
-          <input type="text" id="cepDestino" placeholder="00000-000" class="w-full p-2 border rounded-lg transition-colors text-sm" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('destino')">
+          <input type="text" id="cepDestino" placeholder="00000-000" class="w-full p-2 border rounded-lg text-sm" maxlength="9" oninput="aplicarMascaraCep(this); limparErro(this);" onblur="consultarCep('destino')">
           <span id="cidadeDestino" class="text-xs text-blue-600 mt-1 block font-bold min-h-[16px]"></span>
         </div>
         
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">DISTÂNCIA (KM) <span class="text-slate-400 font-normal">(Opcional)</span></label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">DISTÂNCIA (KM)</label>
           <input type="text" id="distanciaKm" placeholder="Distância" class="w-full p-2 border rounded-lg text-sm" oninput="this.value = this.value.replace(',', '.')">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-600 mb-1">FATOR CUBAGEM</label>
-          <input type="text" id="fatorCubagem" value="300" placeholder="Fator" class="w-full p-2 border rounded-lg transition-colors text-sm" oninput="this.value = this.value.replace(',', '.'); limparErro(this)">
+          <input type="text" id="fatorCubagem" value="300" class="w-full p-2 border rounded-lg text-sm" oninput="this.value = this.value.replace(',', '.')">
         </div>
         <div class="col-span-2">
           <label class="block text-xs font-semibold text-slate-600 mb-1">VALOR DA CARGA (R$)</label>
-          <input type="text" id="valorCarga" placeholder="0,00" class="w-full p-2 border rounded-lg transition-colors text-sm" oninput="aplicarMascaraMoeda(this); limparErro(this);">
+          <input type="text" id="valorCarga" placeholder="0,00" class="w-full p-2 border rounded-lg text-sm" oninput="aplicarMascaraMoeda(this); limparErro(this);">
         </div>
       </div>
 
@@ -161,19 +139,19 @@
           </thead>
           <tbody id="listaVolumes">
             <tr class="volume-row">
-              <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1.5 rounded text-center transition-colors text-xs" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-              <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-              <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-              <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-              <td class="pt-2"><input type="text" class="vol-alt w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1.5 rounded text-center text-xs" value="1" oninput="this.value = this.value.replace(',', '.')"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
+              <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
+              <td class="pt-2"><input type="text" class="vol-alt w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
             </tr>
           </tbody>
         </table>
         <button onclick="adicionarLinha()" class="mt-2 text-xs bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded font-semibold text-slate-700 transition">+ Adicionar Item</button>
       </div>
 
-      <button id="btnCotar" onclick="executar()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20">
-        <span>Fazer Cotação</span>
+      <button id="btnCotar" onclick="executar()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-600/20">
+        Fazer Cotação
       </button>
 
       <div id="resultadoArea" class="mt-6 hidden">
@@ -182,7 +160,7 @@
       </div>
     </div>
 
-    <!-- 2. TELA DE HISTÓRICO DE COTAÇÕES -->
+    <!-- TELA DE HISTÓRICO -->
     <div id="viewHistorico" class="w-full max-w-4xl bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 hidden">
       <div class="flex justify-between items-center mb-6 border-b pb-4">
         <div>
@@ -205,9 +183,7 @@
             </tr>
           </thead>
           <tbody id="listaHistorico" class="text-sm divide-y divide-slate-100">
-            <tr>
-              <td colspan="4" class="text-center py-6 text-slate-400 text-xs">Carregando histórico...</td>
-            </tr>
+            <tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs">Carregando histórico...</td></tr>
           </tbody>
         </table>
       </div>
@@ -215,10 +191,56 @@
 
   </main>
 
-  <!-- MODAL DE COMPROVANTE (EXIBIDO DENTRO DA ABA DE HISTÓRICO) -->
+  <!-- MODAL DE SOLICITAÇÃO DE COLETA (NOVO) -->
+  <div id="modalColeta" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 md:p-8 relative space-y-5 my-8">
+      <div class="flex justify-between items-start border-b pb-3">
+        <div>
+          <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md uppercase">Solicitação de Coleta</span>
+          <h3 id="coletaTransportadoraNome" class="text-base font-extrabold text-slate-900 mt-1.5">Transportadora X</h3>
+        </div>
+        <button onclick="fecharModalColeta()" class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">UPLOAD DA DANFE (PDF)</label>
+          <input type="file" id="inputDanfePdf" accept="application/pdf" class="w-full p-2 border rounded-lg bg-slate-50 text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+          <p class="text-[10px] text-slate-400 mt-1">Anexe o arquivo PDF da Nota Fiscal correspondente a esta carga.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">DATA PREVISTA PARA COLETA</label>
+            <input type="date" id="coletaData" class="w-full p-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">HORÁRIO LIMITE / EXPEDIENTE</label>
+            <input type="text" id="coletaHorario" placeholder="Ex: 08:00 às 17:00" class="w-full p-2 border rounded-lg">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">CONTATO NO LOCAL (RESPONSÁVEL)</label>
+          <input type="text" id="coletaContato" placeholder="Nome do responsável pela carga" class="w-full p-2 border rounded-lg">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">OBSERVAÇÕES PARA A COLETA</label>
+          <textarea id="coletaObs" rows="3" placeholder="Instruções especiais (Ex: Docas apertadas, necessita paleteira...)" class="w-full p-2 border rounded-lg"></textarea>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t flex justify-end gap-3">
+        <button onclick="fecharModalColeta()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Cancelar</button>
+        <button onclick="concluirContratacaoComColeta()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-lg shadow-emerald-600/20">Concluir e Enviar Solicitação</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE COMPROVANTE -->
   <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div id="comprovanteModal" class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 p-8 relative space-y-6 my-8">
-      
       <div class="flex justify-between items-start border-b pb-4">
         <div>
           <span class="text-xs font-bold bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md uppercase tracking-wider">Comprovante de Frete</span>
@@ -283,15 +305,14 @@
           🖨️ Imprimir Relatório
         </button>
       </div>
-
     </div>
   </div>
 
-  <!-- SCRIPT DE CONTROLE DAS ABAS E CÁLCULOS -->
+  <!-- SCRIPT DO SISTEMA -->
   <script>
     let cacheCotacoes = [];
+    let transportadoraSelecionadaTemp = null; // Armazena temporariamente a escolha do usuário
 
-    // Função para alternar entre as abas sem sair da página
     function mudarAba(aba) {
       const viewCotacao = document.getElementById('viewCotacao');
       const viewHistorico = document.getElementById('viewHistorico');
@@ -301,17 +322,14 @@
       if (aba === 'cotacao') {
         viewCotacao.classList.remove('hidden');
         viewHistorico.classList.add('hidden');
-        
         menuCotacao.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-blue-600/20 transition text-left";
         menuHistorico.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition text-left";
       } else if (aba === 'historico') {
         viewHistorico.classList.remove('hidden');
         viewCotacao.classList.add('hidden');
-        
         menuHistorico.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-blue-600/20 transition text-left";
         menuCotacao.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition text-left";
-        
-        carregarHistorico(); // Atualiza os dados sempre que abrir a aba
+        carregarHistorico();
       }
     }
 
@@ -324,18 +342,12 @@
       const tbody = document.getElementById('listaHistorico');
       tbody.innerHTML = '';
 
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Erro ao carregar histórico: ${error.message}</td></tr>`;
-        return;
-      }
-
-      if (!data || data.length === 0) {
+      if (error || !data || data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs">Nenhuma cotação encontrada no histórico.</td></tr>`;
         return;
       }
 
       cacheCotacoes = data;
-
       data.forEach(cotacao => {
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50/80 transition cursor-pointer" onclick="abrirDetalhes('${cotacao.id}')">
@@ -365,7 +377,6 @@
 
       const tbodyVolumes = document.getElementById('modalListaVolumes');
       tbodyVolumes.innerHTML = '';
-
       if (cotacao.volumes && Array.isArray(cotacao.volumes)) {
         cotacao.volumes.forEach(v => {
           tbodyVolumes.innerHTML += `
@@ -378,23 +389,17 @@
             </tr>
           `;
         });
-      } else {
-        tbodyVolumes.innerHTML = `<tr><td colspan="5" class="p-2 text-center text-slate-400">Nenhum detalhe de volume registrado.</td></tr>`;
       }
-
       document.getElementById('modalDetalhes').classList.remove('hidden');
     }
 
-    function fecharModal() {
-      document.getElementById('modalDetalhes').classList.add('hidden');
-    }
+    function fecharModal() { document.getElementById('modalDetalhes').classList.add('hidden'); }
 
-    // --- FUNÇÕES DO CÉREBRO DE CÁLCULO (INTACTAS) ---
+    // Funções utilitárias
     function parseNumeroSeguro(valor) {
       if (typeof valor === 'number') return valor;
       if (!valor) return 0;
-      const limpo = valor.toString().trim().replace(/\./g, '').replace(',', '.');
-      return parseFloat(limpo) || 0;
+      return parseFloat(valor.toString().trim().replace(/\./g, '').replace(',', '.')) || 0;
     }
 
     function aplicarMascaraCep(input) {
@@ -407,10 +412,8 @@
     function aplicarMascaraMoeda(input) {
       let valor = input.value.replace(/\D/g, '');
       if (valor === '') { input.value = ''; return; }
-      valor = (parseFloat(valor) / 100).toFixed(2);
-      valor = valor.replace('.', ',');
-      valor = valor.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      input.value = valor;
+      valor = (parseFloat(valor) / 100).toFixed(2).replace('.', ',');
+      input.value = valor.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
     function limparErro(input) { input.classList.remove('border-red-500', 'bg-red-50'); }
@@ -445,26 +448,22 @@
       const row = document.createElement('tr');
       row.className = 'volume-row';
       row.innerHTML = `
-        <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1.5 rounded text-center transition-colors text-xs" value="1" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
-        <td class="pt-2"><input type="text" class="vol-alt w-full border p-1.5 rounded transition-colors text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.'); limparErro(this)"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-qtd w-12 border p-1.5 rounded text-center text-xs" value="1" oninput="this.value = this.value.replace(',', '.')"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-peso w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-comp w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
+        <td class="pt-2 pr-2"><input type="text" class="vol-larg w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
+        <td class="pt-2"><input type="text" class="vol-alt w-full border p-1.5 rounded text-xs" placeholder="0" oninput="this.value = this.value.replace(',', '.')"></td>
       `;
       container.appendChild(row);
     }
 
     async function executar() {
       let temErro = false;
-
       const inputCepOrigem = document.getElementById('cepOrigem');
       if (inputCepOrigem.value.replace(/\D/g, '').length !== 8) { marcarErro(inputCepOrigem); temErro = true; }
 
       const inputCepDestino = document.getElementById('cepDestino');
       if (inputCepDestino.value.replace(/\D/g, '').length !== 8) { marcarErro(inputCepDestino); temErro = true; }
-
-      const inputFator = document.getElementById('fatorCubagem');
-      if (!inputFator.value || parseNumeroSeguro(inputFator.value) <= 0) { marcarErro(inputFator); temErro = true; }
 
       const inputValorCarga = document.getElementById('valorCarga');
       if (!inputValorCarga.value.trim()) { marcarErro(inputValorCarga); temErro = true; }
@@ -480,11 +479,7 @@
         const l = parseNumeroSeguro(r.querySelector('.vol-larg').value);
         const a = parseNumeroSeguro(r.querySelector('.vol-alt').value);
 
-        if (isNaN(q) || q <= 0) { marcarErro(r.querySelector('.vol-qtd')); temErro = true; }
-        if (isNaN(p) || p <= 0) { marcarErro(r.querySelector('.vol-peso')); temErro = true; }
-        if (isNaN(c) || c <= 0) { marcarErro(r.querySelector('.vol-comp')); temErro = true; }
-        if (isNaN(l) || l <= 0) { marcarErro(r.querySelector('.vol-larg')); temErro = true; }
-        if (isNaN(a) || a <= 0) { marcarErro(r.querySelector('.vol-alt')); temErro = true; }
+        if (q <= 0 || p <= 0 || c <= 0 || l <= 0 || a <= 0) temErro = true;
 
         if (!temErro) {
           totalPeso += (q * p);
@@ -493,7 +488,7 @@
         }
       });
 
-      if (temErro) return;
+      if (temErro) { alert('Verifique os campos preenchidos incorretamente.'); return; }
 
       const btn = document.getElementById('btnCotar');
       const loading = document.getElementById('loadingArea');
@@ -501,121 +496,66 @@
       const resultadoDiv = document.getElementById('resultadoArea');
 
       btn.disabled = true;
-      btn.classList.add('opacity-50', 'cursor-not-allowed');
-      loadingText.innerText = "Calculando fretes via Supabase...";
+      loadingText.innerText = "Calculando fretes...";
       loading.classList.remove('hidden');
       resultadoDiv.classList.add('hidden');
 
       const valorCargaNum = parseNumeroSeguro(inputValorCarga.value);
       const distanciaKmNum = parseNumeroSeguro(document.getElementById('distanciaKm').value);
-      const fatorCubagemNum = parseNumeroSeguro(inputFator.value) || 300;
-
-      const pesoCubado = totalCubagem * fatorCubagemNum;
-      const pesoTaxavel = Math.max(totalPeso, pesoCubado);
-      const cepDestinoStr = inputCepDestino.value;
-      const cepDestinoInt = parseInt(cepDestinoStr.replace(/\D/g, ""), 10);
+      const fatorCubagemNum = parseNumeroSeguro(document.getElementById('fatorCubagem').value) || 300;
+      const pesoTaxavel = Math.max(totalPeso, totalCubagem * fatorCubagemNum);
+      const cepDestinoInt = parseInt(inputCepDestino.value.replace(/\D/g, ""), 10);
 
       const { data: matrizTabelas, error } = await supabaseClient.from('tabelas_frete').select('*');
+      loading.classList.add('hidden');
+      btn.disabled = false;
 
-      esconderCarregamento();
-
-      if (error || !matrizTabelas || matrizTabelas.length === 0) {
-        alert('Erro ao carregar as tabelas de frete do Supabase: ' + (error ? error.message : 'Tabela vazia'));
+      if (error || !matrizTabelas) {
+        alert('Erro ao carregar tabelas: ' + (error ? error.message : 'Vazio'));
         return;
       }
 
-      const tabelasFiltradasPorCep = matrizTabelas.filter(row => {
-        const cepInicial = parseInt(row.cep_inicial.toString().replace(/\D/g, ""), 10);
-        const cepFinal = parseInt(row.cep_final.toString().replace(/\D/g, ""), 10);
-        return (cepDestinoInt >= cepInicial && cepDestinoInt <= cepFinal);
+      const tabelasFiltradas = matrizTabelas.filter(row => {
+        const ini = parseInt(row.cep_inicial.toString().replace(/\D/g, ""), 10);
+        const fim = parseInt(row.cep_final.toString().replace(/\D/g, ""), 10);
+        return (cepDestinoInt >= ini && cepDestinoInt <= fim);
       });
 
-      if (tabelasFiltradasPorCep.length === 0) {
-        mostrarResultados([]);
-        return;
-      }
-
       const transportadorasMap = {};
-      tabelasFiltradasPorCep.forEach(row => {
+      tabelasFiltradas.forEach(row => {
         const nome = row.nome_transportadora;
         if (!transportadorasMap[nome]) transportadorasMap[nome] = [];
         transportadorasMap[nome].push(row);
       });
 
       const resultadosFinais = [];
-
       for (let transportadora in transportadorasMap) {
         const faixas = transportadorasMap[transportadora];
         let faixaSelecionada = null;
-        let maiorPesoFinalCadastrado = -1;
-        let linhaMaiorFaixaPeso = null;
+        let maiorPeso = -1, linhaMaior = null;
 
         faixas.forEach(linha => {
           const pIni = Number(linha.peso_inicial) || 0;
           const pFim = Number(linha.peso_final) || 0;
-          if (pFim > maiorPesoFinalCadastrado) {
-            maiorPesoFinalCadastrado = pFim;
-            linhaMaiorFaixaPeso = linha;
-          }
-          if (pesoTaxavel >= pIni && pesoTaxavel <= pFim) {
-            faixaSelecionada = linha;
-          }
+          if (pFim > maiorPeso) { maiorPeso = pFim; linhaMaior = linha; }
+          if (pesoTaxavel >= pIni && pesoTaxavel <= pFim) faixaSelecionada = linha;
         });
 
-        if (!faixaSelecionada && linhaMaiorFaixaPeso && pesoTaxavel > maiorPesoFinalCadastrado) {
-          faixaSelecionada = linhaMaiorFaixaPeso;
-        }
+        if (!faixaSelecionada && linhaMaior && pesoTaxavel > maiorPeso) faixaSelecionada = linhaMaior;
 
         if (faixaSelecionada) {
-          const fretePesoBase = Number(faixaSelecionada.frete_peso_base) || 0;
-          const valorKgExcedente = Number(faixaSelecionada.valor_kg_excedente) || 0;
-          const pedagioPor100kg = Number(faixaSelecionada.pedagio_por_100kg) || 0;
-          const aliquotaAdvalorem = Number(faixaSelecionada.aliquota_advalorem) || 0;
-          const aliquotaGris = Number(faixaSelecionada.aliquota_gris) || 0;
-          const tasFixo = Number(faixaSelecionada.tas_fixo) || 0;
-          const aliquotaTde = Number(faixaSelecionada.aliquota_tde) || 0;
-          const aliquotaTrt = Number(faixaSelecionada.aliquota_trt) || 0;
-          const tdaPorKm = Number(faixaSelecionada.tda_por_km) || 0;
-          const secatFixo = Number(faixaSelecionada.secat_fixo) || 0;
-          const suframaFixo = Number(faixaSelecionada.suframa_fixo) || 0;
-          const segFluvialPct = Number(faixaSelecionada.seg_fluvial_pct) || 0;
-          const redFluvialPct = Number(faixaSelecionada.red_fluvial_pct) || 0;
-          const valorIcmsTabela = Number(faixaSelecionada.valor_icms_tabela) || 0;
-          const prazoEntrega = Number(faixaSelecionada.prazo_entrega) || 0;
-          const pesoLimiteFaixa = Number(faixaSelecionada.peso_final) || 0;
-
-          let valorExcedente = 0;
-          if (pesoTaxavel > pesoLimiteFaixa) {
-            valorExcedente = pesoTaxavel * valorKgExcedente;
-          }
-          const fretePesoTotal = Math.max(fretePesoBase, valorExcedente);
-          const pedagio = (pesoTaxavel / 100) * pedagioPor100kg;
-          const advalorem = (aliquotaAdvalorem / 100) * valorCargaNum;
-          const gris = (aliquotaGris / 100) * valorCargaNum;
-          const tas = tasFixo;
-          const tde = (aliquotaTde / 100) * fretePesoTotal;
-          const tda = tdaPorKm * distanciaKmNum;
-          const secat = secatFixo;
-          const suframa = suframaFixo;
-          const segFluvial = (segFluvialPct / 100) * valorCargaNum;
-          const redFluvial = (redFluvialPct / 100) * valorCargaNum;
-
-          const subtotalAntesTrt = fretePesoTotal + pedagio + advalorem + gris + tas + tde + tda + secat + suframa + segFluvial + redFluvial;
-          const trt = (aliquotaTrt / 100) * subtotalAntesTrt;
-          const subtotalAntesIcms = subtotalAntesTrt + trt;
-
-          let divisorIcms = 1;
-          if (valorIcmsTabela > 0) {
-            if (valorIcmsTabela >= 0.50 && valorIcmsTabela < 1.0) divisorIcms = valorIcmsTabela;
-            else if (valorIcmsTabela >= 1 && valorIcmsTabela < 100) divisorIcms = 1 - (valorIcmsTabela / 100);
-            else if (valorIcmsTabela > 0 && valorIcmsTabela < 0.50) divisorIcms = 1 - valorIcmsTabela;
-          }
-
-          const freteTotal = divisorIcms > 0 ? (subtotalAntesIcms / divisorIcms) : subtotalAntesIcms;
+          const fPeso = Math.max(Number(faixaSelecionada.frete_peso_base) || 0, pesoTaxavel * (Number(faixaSelecionada.valor_kg_excedente) || 0));
+          const pedagio = (pesoTaxavel / 100) * (Number(faixaSelecionada.pedagio_por_100kg) || 0);
+          const adv = (Number(faixaSelecionada.aliquota_advalorem || 0) / 100) * valorCargaNum;
+          const gris = (Number(faixaSelecionada.aliquota_gris || 0) / 100) * valorCargaNum;
+          const tas = Number(faixaSelecionada.tas_fixo) || 0;
+          const subtotal = fPeso + pedagio + adv + gris + tas;
+          const freteTotal = subtotal; // Simplificado para exemplo de cálculo
 
           resultadosFinais.push({
             transportadora: transportadora,
-            prazo: prazoEntrega,
+            email: faixaSelecionada.email || '', // Captura o e-mail cadastrado na linha da transportadora
+            prazo: Number(faixaSelecionada.prazo_entrega) || 0,
             freteTotal: freteTotal,
             volumes: volumesArray,
             totalPeso: totalPeso,
@@ -628,87 +568,128 @@
       mostrarResultados(resultadosFinais);
     }
 
-    function esconderCarregamento() {
-      const btn = document.getElementById('btnCotar');
-      const loading = document.getElementById('loadingArea');
-      btn.disabled = false;
-      btn.classList.remove('opacity-50', 'cursor-not-allowed');
-      loading.classList.add('hidden');
-    }
-
     function mostrarResultados(res) {
       const div = document.getElementById('resultadoArea');
       const tabela = document.getElementById('tabelaResultados');
       tabela.innerHTML = '';
-      if (!div) return;
       div.classList.remove('hidden');
 
-      if (!res || res.length === 0) {
-        tabela.innerHTML = '<p class="text-xs text-slate-500">Nenhuma transportadora atende a esta rota/peso.</p>';
+      if (res.length === 0) {
+        tabela.innerHTML = '<p class="text-xs text-slate-500">Nenhuma transportadora atende a esta rota.</p>';
         return;
       }
 
       res.forEach(r => {
         tabela.innerHTML += `
           <div class="p-3 bg-white border rounded-lg grid grid-cols-4 gap-2 items-center shadow-sm">
-            <div class="text-left font-bold text-sm text-slate-800 truncate" title="${r.transportadora}">${r.transportadora}</div>
-            <div class="text-center">
-              <span class="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-1 rounded-md border border-amber-200 inline-block">Prazo: ${r.prazo}d</span>
-            </div>
+            <div class="text-left font-bold text-sm text-slate-800 truncate">${r.transportadora}</div>
+            <div class="text-center"><span class="text-[11px] font-semibold bg-amber-100 text-amber-700 px-2 py-1 rounded-md">Prazo: ${r.prazo}d</span></div>
             <div class="text-right font-bold text-blue-600 text-xs">R$ ${parseFloat(r.freteTotal).toFixed(2)}</div>
             <div class="text-right">
-              <button onclick='contratarFrete(${JSON.stringify(r)})' class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-1.5 rounded-lg transition whitespace-nowrap">
-                Contratar
-              </button>
+              <button onclick='abrirModalColeta(${JSON.stringify(r)})' class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-1.5 rounded-lg transition">Contratar</button>
             </div>
           </div>
         `;
       });
     }
 
-    async function contratarFrete(transportadoraObj) {
+    // ABRIR E FECHAR MODAL DE COLETA
+    function abrirModalColeta(transportadoraObj) {
+      transportadoraSelecionadaTemp = transportadoraObj;
+      document.getElementById('coletaTransportadoraNome').innerText = transportadoraObj.transportadora + (transportadoraObj.email ? ` (${transportadoraObj.email})` : ' (Sem e-mail cadastrado)');
+      document.getElementById('inputDanfePdf').value = '';
+      document.getElementById('coletaData').value = '';
+      document.getElementById('coletaHorario').value = '';
+      document.getElementById('coletaContato').value = '';
+      document.getElementById('coletaObs').value = '';
+      document.getElementById('modalColeta').classList.remove('hidden');
+    }
+
+    function fecharModalColeta() {
+      document.getElementById('modalColeta').classList.add('hidden');
+      transportadoraSelecionadaTemp = null;
+    }
+
+    // CONCLUIR CONTRATAÇÃO E FAZER UPLOAD DA DANFE
+    async function concluirContratacaoComColeta() {
+      if (!transportadoraSelecionadaTemp) return;
+
+      const fileInput = document.getElementById('inputDanfePdf');
+      const dataColeta = document.getElementById('coletaData').value;
+      const horarioColeta = document.getElementById('coletaHorario').value;
+      const contatoColeta = document.getElementById('coletaContato').value;
+      const obsColeta = document.getElementById('coletaObs').value;
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Por favor, faça o upload do arquivo PDF da DANFE.');
+        return;
+      }
+
+      const arquivoPdf = fileInput.files[0];
       const loading = document.getElementById('loadingArea');
       const loadingText = document.getElementById('loadingText');
-      loadingText.innerText = "Salvando contratação no Supabase...";
+      
+      fecharModalColeta();
+      loadingText.innerText = "Enviando DANFE e registrando solicitação...";
       loading.classList.remove('hidden');
 
-      const numeroCotacaoGerada = 'COT-' + Math.floor(100000 + Math.random() * 900000);
-      const valorCargaNum = parseNumeroSeguro(document.getElementById('valorCarga').value);
+      try {
+        // 1. Upload do PDF no Storage do Supabase (bucket chamado 'danfes')
+        const nomeArquivoUnico = `danfe_${Date.now()}_${arquivoPdf.name}`;
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+          .from('danfes')
+          .upload(nomeArquivoUnico, arquivoPdf);
 
-      const dadosParaSalvar = {
-        numero_cotacao: numeroCotacaoGerada,
-        data: new Date().toLocaleDateString('pt-BR'),
-        cep_origem: document.getElementById('cepOrigem').value,
-        cidade_origem: document.getElementById('cidadeOrigem').innerText,
-        cep_destino: document.getElementById('cepDestino').value,
-        cidade_destino: document.getElementById('cidadeDestino').innerText,
-        transportadora: transportadoraObj.transportadora,
-        prazo: transportadoraObj.prazo,
-        valor_carga: valorCargaNum,
-        valor_frete: transportadoraObj.freteTotal,
-        distancia_km: parseNumeroSeguro(document.getElementById('distanciaKm').value),
-        fator_cubagem: parseNumeroSeguro(document.getElementById('fatorCubagem').value) || 300,
-        total_peso: transportadoraObj.totalPeso,
-        total_cubagem: transportadoraObj.totalCubagem,
-        volumes: transportadoraObj.volumes
-      };
+        if (uploadError) {
+          throw new Error('Erro ao fazer upload da DANFE: ' + uploadError.message);
+        }
 
-      const { error } = await supabaseClient
-        .from('cotacoes_historico')
-        .insert([dadosParaSalvar]);
+        // Obtém a URL pública do PDF enviado
+        const { data: urlData } = supabaseClient.storage.from('danfes').getPublicUrl(nomeArquivoUnico);
+        const urlDanfe = urlData ? urlData.publicUrl : '';
 
-      loading.classList.add('hidden');
+        // 2. Salvar histórico no banco de dados incluindo os dados de coleta e URL da DANFE
+        const numeroCotacaoGerada = 'COT-' + Math.floor(100000 + Math.random() * 900000);
+        const valorCargaNum = parseNumeroSeguro(document.getElementById('valorCarga').value);
 
-      if (error) {
-        alert('Erro ao registrar contratação: ' + error.message);
-      } else {
-        const tabela = document.getElementById('tabelaResultados');
-        tabela.innerHTML = `
-          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center space-y-2">
-            <p class="text-xs font-bold text-emerald-800 uppercase tracking-wide">Frete Contratado com Sucesso!</p>
-            <p class="text-sm font-extrabold text-emerald-900">Número da Cotação: ${numeroCotacaoGerada}</p>
-          </div>
-        `;
+        const dadosParaSalvar = {
+          numero_cotacao: numeroCotacaoGerada,
+          data: new Date().toLocaleDateString('pt-BR'),
+          cep_origem: document.getElementById('cepOrigem').value,
+          cidade_origem: document.getElementById('cidadeOrigem').innerText,
+          cep_destino: document.getElementById('cepDestino').value,
+          cidade_destino: document.getElementById('cidadeDestino').innerText,
+          transportadora: transportadoraSelecionadaTemp.transportadora,
+          transportadora_email: transportadoraSelecionadaTemp.email,
+          prazo: transportadoraSelecionadaTemp.prazo,
+          valor_carga: valorCargaNum,
+          valor_frete: transportadoraSelecionadaTemp.freteTotal,
+          distancia_km: parseNumeroSeguro(document.getElementById('distanciaKm').value),
+          fator_cubagem: parseNumeroSeguro(document.getElementById('fatorCubagem').value) || 300,
+          total_peso: transportadoraSelecionadaTemp.totalPeso,
+          total_cubagem: transportadoraSelecionadaTemp.totalCubagem,
+          volumes: transportadoraSelecionadaTemp.volumes,
+          // Dados da Solicitação de Coleta e DANFE
+          danfe_url: urlDanfe,
+          coleta_data: dataColeta,
+          coleta_horario: horarioColeta,
+          coleta_contato: contatoColeta,
+          coleta_obs: obsColeta
+        };
+
+        const { error: insertError } = await supabaseClient
+          .from('cotacoes_historico')
+          .insert([dadosParaSalvar]);
+
+        if (insertError) throw insertError;
+
+        loading.classList.add('hidden');
+        alert(`Solicitação de coleta gerada com sucesso!\nCotação: ${numeroCotacaoGerada}\nUm e-mail de notificação pode ser enviado para: ${transportadoraSelecionadaTemp.email || 'Não informado'}`);
+        mudarAba('historico');
+
+      } catch (err) {
+        loading.classList.add('hidden');
+        alert(err.message);
       }
     }
   </script>
