@@ -634,8 +634,14 @@
       loading.classList.remove('hidden');
 
       try {
-        // 1. Upload do PDF no Storage do Supabase (bucket chamado 'danfes')
-        const nomeArquivoUnico = `danfe_${Date.now()}_${arquivoPdf.name}`;
+        // Limpa o nome do arquivo removendo colchetes, espaços e acentos para evitar erro de chave no Storage
+        const nomeLimpo = arquivoPdf.name
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // Remove acentos
+          .replace(/[^a-zA-Z0-9._-]/g, "_"); // Substitui caracteres especiais por underscore
+
+        const nomeArquivoUnico = `danfe_${Date.now()}_${nomeLimpo}`;
+
+        // 1. Upload do PDF no Storage do Supabase (bucket 'danfes')
         const { data: uploadData, error: uploadError } = await supabaseClient.storage
           .from('danfes')
           .upload(nomeArquivoUnico, arquivoPdf);
@@ -648,7 +654,7 @@
         const { data: urlData } = supabaseClient.storage.from('danfes').getPublicUrl(nomeArquivoUnico);
         const urlDanfe = urlData ? urlData.publicUrl : '';
 
-        // 2. Salvar histórico no banco de dados incluindo os dados de coleta e URL da DANFE
+        // 2. Salvar histórico no banco de dados
         const numeroCotacaoGerada = 'COT-' + Math.floor(100000 + Math.random() * 900000);
         const valorCargaNum = parseNumeroSeguro(document.getElementById('valorCarga').value);
 
@@ -669,7 +675,6 @@
           total_peso: transportadoraSelecionadaTemp.totalPeso,
           total_cubagem: transportadoraSelecionadaTemp.totalCubagem,
           volumes: transportadoraSelecionadaTemp.volumes,
-          // Dados da Solicitação de Coleta e DANFE
           danfe_url: urlDanfe,
           coleta_data: dataColeta,
           coleta_horario: horarioColeta,
@@ -684,7 +689,7 @@
         if (insertError) throw insertError;
 
         loading.classList.add('hidden');
-        alert(`Solicitação de coleta gerada com sucesso!\nCotação: ${numeroCotacaoGerada}\nUm e-mail de notificação pode ser enviado para: ${transportadoraSelecionadaTemp.email || 'Não informado'}`);
+        alert(`Solicitação de coleta gerada com sucesso!\nCotação: ${numeroCotacaoGerada}`);
         mudarAba('historico');
 
       } catch (err) {
