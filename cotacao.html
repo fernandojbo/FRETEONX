@@ -6,14 +6,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FRETEONX - Sistema de Gestão</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Importando o Cliente do Supabase via CDN -->
+  <!-- Supabase Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   
   <script>
     const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
     
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Inicialização do EmailJS com a sua Public Key
+    (function(){
+       emailjs.init("fPP2bIe_G0Bqor4tw");
+    })();
 
     async function verificarAutenticacao() {
         try {
@@ -598,7 +605,6 @@
       transportadoraSelecionadaTemp = transportadoraObj;
       document.getElementById('coletaTransportadoraNome').innerText = transportadoraObj.transportadora + (transportadoraObj.email ? ` (${transportadoraObj.email})` : ' (Sem e-mail cadastrado)');
       
-      // Guarda os dados de forma segura no botão para evitar perda de escopo
       document.getElementById('btnConcluirColeta').setAttribute('data-transportadora', JSON.stringify(transportadoraObj));
 
       document.getElementById('inputDanfePdf').value = '';
@@ -614,7 +620,7 @@
       transportadoraSelecionadaTemp = null;
     }
 
-    // CONCLUIR CONTRATAÇÃO E FAZER UPLOAD DA DANFE
+    // CONCLUIR CONTRATAÇÃO, UPLOAD DA DANFE E DISPARO DE E-MAIL
     async function concluirContratacaoComColeta() {
       const btnConcluir = document.getElementById('btnConcluirColeta');
       const rawData = btnConcluir.getAttribute('data-transportadora');
@@ -646,7 +652,7 @@
       loading.classList.remove('hidden');
 
       try {
-        // Sanitiza o nome do arquivo removendo acentos e caracteres especiais para evitar erros no Storage do Supabase
+        // Sanitiza o nome do arquivo para o Storage
         const nomeLimpo = arquivoPdf.name
           .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -662,21 +668,23 @@
           throw new Error('Erro ao fazer upload da DANFE: ' + uploadError.message);
         }
 
-        // Obtém a URL pública do PDF enviado
+        // Obtém a URL pública do PDF
         const { data: urlData } = supabaseClient.storage.from('danfes').getPublicUrl(nomeArquivoUnico);
         const urlDanfe = urlData ? urlData.publicUrl : '';
 
         // 2. Salvar histórico no banco de dados
         const numeroCotacaoGerada = 'COT-' + Math.floor(100000 + Math.random() * 900000);
         const valorCargaNum = parseNumeroSeguro(document.getElementById('valorCarga').value);
+        const cidadeOrigemTxt = document.getElementById('cidadeOrigem').innerText;
+        const cidadeDestinoTxt = document.getElementById('cidadeDestino').innerText;
 
         const dadosParaSalvar = {
           numero_cotacao: numeroCotacaoGerada,
           data: new Date().toLocaleDateString('pt-BR'),
           cep_origem: document.getElementById('cepOrigem').value,
-          cidade_origem: document.getElementById('cidadeOrigem').innerText,
+          cidade_origem: cidadeOrigemTxt,
           cep_destino: document.getElementById('cepDestino').value,
-          cidade_destino: document.getElementById('cidadeDestino').innerText,
+          cidade_destino: cidadeDestinoTxt,
           transportadora: transportadoraObj.transportadora,
           transportadora_email: transportadoraObj.email,
           prazo: transportadoraObj.prazo,
@@ -700,13 +708,33 @@
 
         if (insertError) throw insertError;
 
+        // 3. Disparo Automático de E-mail via EmailJS para a Transportadora
+        if (transportadoraObj.email) {
+          loadingText.innerText = "Enviando e-mail para a transportadora...";
+          
+          const emailParams = {
+            to_email: transportadoraObj.email,
+            transportadora: transportadoraObj.transportadora,
+            numero_cotacao: numeroCotacaoGerada,
+            cidade_origem: cidadeOrigemTxt,
+            cidade_destino: cidadeDestinoTxt,
+            data_coleta: dataColeta || 'A combinar',
+            horario_coleta: horarioColeta || 'A combinar',
+            contato_coleta: contatoColeta || 'Não informado',
+            obs_coleta: obsColeta || 'Sem observações',
+            url_danfe: urlDanfe
+          };
+
+          await emailjs.send('service_8eavyhd', 'template_nf2x3ge', emailParams);
+        }
+
         loading.classList.add('hidden');
-        alert(`Solicitação de coleta gerada com sucesso!\nCotação: ${numeroCotacaoGerada}`);
+        alert(`Solicitação de coleta gerada com sucesso!\nCotação: ${numeroCotacaoGerada}\nE-mail enviado para a transportadora.`);
         mudarAba('historico');
 
       } catch (err) {
         loading.classList.add('hidden');
-        alert(err.message);
+        alert('Erro no processo: ' + (err.text || err.message || JSON.stringify(err)));
       }
     }
   </script>
