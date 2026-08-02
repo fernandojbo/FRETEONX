@@ -191,7 +191,7 @@
 
   </main>
 
-  <!-- MODAL DE SOLICITAÇÃO DE COLETA (NOVO) -->
+  <!-- MODAL DE SOLICITAÇÃO DE COLETA -->
   <div id="modalColeta" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 md:p-8 relative space-y-5 my-8">
       <div class="flex justify-between items-start border-b pb-3">
@@ -233,7 +233,7 @@
 
       <div class="pt-4 border-t flex justify-end gap-3">
         <button onclick="fecharModalColeta()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Cancelar</button>
-        <button onclick="concluirContratacaoComColeta()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-lg shadow-emerald-600/20">Concluir e Enviar Solicitação</button>
+        <button id="btnConcluirColeta" onclick="concluirContratacaoComColeta()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-lg shadow-emerald-600/20">Concluir e Enviar Solicitação</button>
       </div>
     </div>
   </div>
@@ -311,7 +311,7 @@
   <!-- SCRIPT DO SISTEMA -->
   <script>
     let cacheCotacoes = [];
-    let transportadoraSelecionadaTemp = null; // Armazena temporariamente a escolha do usuário
+    let transportadoraSelecionadaTemp = null;
 
     function mudarAba(aba) {
       const viewCotacao = document.getElementById('viewCotacao');
@@ -550,11 +550,11 @@
           const gris = (Number(faixaSelecionada.aliquota_gris || 0) / 100) * valorCargaNum;
           const tas = Number(faixaSelecionada.tas_fixo) || 0;
           const subtotal = fPeso + pedagio + adv + gris + tas;
-          const freteTotal = subtotal; // Simplificado para exemplo de cálculo
+          const freteTotal = subtotal;
 
           resultadosFinais.push({
             transportadora: transportadora,
-            email: faixaSelecionada.email || '', // Captura o e-mail cadastrado na linha da transportadora
+            email: faixaSelecionada.email || '',
             prazo: Number(faixaSelecionada.prazo_entrega) || 0,
             freteTotal: freteTotal,
             volumes: volumesArray,
@@ -597,6 +597,10 @@
     function abrirModalColeta(transportadoraObj) {
       transportadoraSelecionadaTemp = transportadoraObj;
       document.getElementById('coletaTransportadoraNome').innerText = transportadoraObj.transportadora + (transportadoraObj.email ? ` (${transportadoraObj.email})` : ' (Sem e-mail cadastrado)');
+      
+      // Guarda os dados de forma segura no botão para evitar perda de escopo
+      document.getElementById('btnConcluirColeta').setAttribute('data-transportadora', JSON.stringify(transportadoraObj));
+
       document.getElementById('inputDanfePdf').value = '';
       document.getElementById('coletaData').value = '';
       document.getElementById('coletaHorario').value = '';
@@ -612,8 +616,16 @@
 
     // CONCLUIR CONTRATAÇÃO E FAZER UPLOAD DA DANFE
     async function concluirContratacaoComColeta() {
-      if (!transportadoraSelecionadaTemp) return;
+      const btnConcluir = document.getElementById('btnConcluirColeta');
+      const rawData = btnConcluir.getAttribute('data-transportadora');
+      
+      if (!rawData && !transportadoraSelecionadaTemp) {
+        alert('Erro: Nenhuma transportadora selecionada. Por favor, tente novamente.');
+        fecharModalColeta();
+        return;
+      }
 
+      const transportadoraObj = transportadoraSelecionadaTemp || JSON.parse(rawData);
       const fileInput = document.getElementById('inputDanfePdf');
       const dataColeta = document.getElementById('coletaData').value;
       const horarioColeta = document.getElementById('coletaHorario').value;
@@ -634,10 +646,10 @@
       loading.classList.remove('hidden');
 
       try {
-        // Limpa o nome do arquivo removendo colchetes, espaços e acentos para evitar erro de chave no Storage
+        // Sanitiza o nome do arquivo removendo acentos e caracteres especiais para evitar erros no Storage do Supabase
         const nomeLimpo = arquivoPdf.name
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // Remove acentos
-          .replace(/[^a-zA-Z0-9._-]/g, "_"); // Substitui caracteres especiais por underscore
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-zA-Z0-9._-]/g, "_");
 
         const nomeArquivoUnico = `danfe_${Date.now()}_${nomeLimpo}`;
 
@@ -665,16 +677,16 @@
           cidade_origem: document.getElementById('cidadeOrigem').innerText,
           cep_destino: document.getElementById('cepDestino').value,
           cidade_destino: document.getElementById('cidadeDestino').innerText,
-          transportadora: transportadoraSelecionadaTemp.transportadora,
-          transportadora_email: transportadoraSelecionadaTemp.email,
-          prazo: transportadoraSelecionadaTemp.prazo,
+          transportadora: transportadoraObj.transportadora,
+          transportadora_email: transportadoraObj.email,
+          prazo: transportadoraObj.prazo,
           valor_carga: valorCargaNum,
-          valor_frete: transportadoraSelecionadaTemp.freteTotal,
+          valor_frete: transportadoraObj.freteTotal,
           distancia_km: parseNumeroSeguro(document.getElementById('distanciaKm').value),
           fator_cubagem: parseNumeroSeguro(document.getElementById('fatorCubagem').value) || 300,
-          total_peso: transportadoraSelecionadaTemp.totalPeso,
-          total_cubagem: transportadoraSelecionadaTemp.totalCubagem,
-          volumes: transportadoraSelecionadaTemp.volumes,
+          total_peso: transportadoraObj.totalPeso,
+          total_cubagem: transportadoraObj.totalCubagem,
+          volumes: transportadoraObj.volumes,
           danfe_url: urlDanfe,
           coleta_data: dataColeta,
           coleta_horario: horarioColeta,
