@@ -513,7 +513,19 @@
       const pesoTaxavel = Math.max(totalPeso, totalCubagem * fatorCubagemNum);
       const cepDestinoInt = parseInt(inputCepDestino.value.replace(/\D/g, ""), 10);
 
-      const { data: matrizTabelas, error } = await supabaseClient.from('tabelas_frete').select('*');
+      // Obtém o usuário logado atualmente
+const { data: { user } } = await supabaseClient.auth.getUser();
+
+if (!user) {
+  alert('Usuário não autenticado.');
+  return;
+}
+
+// Busca apenas as tabelas cadastradas por ESTE usuário específico
+const { data: matrizTabelas, error } = await supabaseClient
+  .from('tabelas_frete')
+  .select('*')
+  .eq('user_id', user.id);
       loading.classList.add('hidden');
       btn.disabled = false;
 
