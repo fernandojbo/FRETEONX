@@ -341,9 +341,15 @@
     }
 
     async function carregarHistorico() {
+      // Pega o usuário logado atualmente
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+
+      // Filtra estritamente pelo ID do usuário autenticado
       const { data, error } = await supabaseClient
         .from('cotacoes_historico')
         .select('*')
+        .eq('user_id', user.id)
         .order('criado_em', { ascending: false });
 
       const tbody = document.getElementById('listaHistorico');
@@ -514,18 +520,19 @@
       const cepDestinoInt = parseInt(inputCepDestino.value.replace(/\D/g, ""), 10);
 
       // Obtém o usuário logado atualmente
-const { data: { user } } = await supabaseClient.auth.getUser();
+      const { data: { user } } = await supabaseClient.auth.getUser();
 
-if (!user) {
-  alert('Usuário não autenticado.');
-  return;
-}
+      if (!user) {
+        alert('Usuário não autenticado.');
+        return;
+      }
 
-// Busca apenas as tabelas cadastradas por ESTE usuário específico
-const { data: matrizTabelas, error } = await supabaseClient
-  .from('tabelas_frete')
-  .select('*')
-  .eq('user_id', user.id);
+      // Busca apenas as tabelas cadastradas por ESTE usuário específico
+      const { data: matrizTabelas, error } = await supabaseClient
+        .from('tabelas_frete')
+        .select('*')
+        .eq('user_id', user.id);
+        
       loading.classList.add('hidden');
       btn.disabled = false;
 
@@ -612,7 +619,6 @@ const { data: matrizTabelas, error } = await supabaseClient
       });
     }
 
-    // ABRIR E FECHAR MODAL DE COLETA
     function abrirModalColeta(transportadoraObj) {
       transportadoraSelecionadaTemp = transportadoraObj;
       document.getElementById('coletaTransportadoraNome').innerText = transportadoraObj.transportadora + (transportadoraObj.email ? ` (${transportadoraObj.email})` : ' (Sem e-mail cadastrado)');
@@ -632,7 +638,6 @@ const { data: matrizTabelas, error } = await supabaseClient
       transportadoraSelecionadaTemp = null;
     }
 
-    // CONCLUIR CONTRATAÇÃO, UPLOAD DA DANFE E DISPARO DE E-MAIL
     async function concluirContratacaoComColeta() {
       const btnConcluir = document.getElementById('btnConcluirColeta');
       const rawData = btnConcluir.getAttribute('data-transportadora');
@@ -664,14 +669,12 @@ const { data: matrizTabelas, error } = await supabaseClient
       loading.classList.remove('hidden');
 
       try {
-        // Sanitiza o nome do arquivo para o Storage
         const nomeLimpo = arquivoPdf.name
           .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
           .replace(/[^a-zA-Z0-9._-]/g, "_");
 
         const nomeArquivoUnico = `danfe_${Date.now()}_${nomeLimpo}`;
 
-        // 1. Upload do PDF no Storage do Supabase (bucket 'danfes')
         const { data: uploadData, error: uploadError } = await supabaseClient.storage
           .from('danfes')
           .upload(nomeArquivoUnico, arquivoPdf);
@@ -680,17 +683,14 @@ const { data: matrizTabelas, error } = await supabaseClient
           throw new Error('Erro ao fazer upload da DANFE: ' + uploadError.message);
         }
 
-        // Obtém a URL pública do PDF
         const { data: urlData } = supabaseClient.storage.from('danfes').getPublicUrl(nomeArquivoUnico);
         const urlDanfe = urlData ? urlData.publicUrl : '';
 
-        // 2. Salvar histórico no banco de dados
         const numeroCotacaoGerada = 'COT-' + Math.floor(100000 + Math.random() * 900000);
         const valorCargaNum = parseNumeroSeguro(document.getElementById('valorCarga').value);
         const cidadeOrigemTxt = document.getElementById('cidadeOrigem').innerText;
         const cidadeDestinoTxt = document.getElementById('cidadeDestino').innerText;
 
-        // Obtém o usuário logado para vincular a cotação ao SaaS dele
         const { data: { user } } = await supabaseClient.auth.getUser();
 
         const dadosParaSalvar = {
@@ -724,7 +724,6 @@ const { data: matrizTabelas, error } = await supabaseClient
 
         if (insertError) throw insertError;
 
-        // 3. Disparo Automático de E-mail via EmailJS para a Transportadora
         if (transportadoraObj.email) {
           loadingText.innerText = "Enviando e-mail para a transportadora...";
           
