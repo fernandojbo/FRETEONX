@@ -172,27 +172,27 @@
   <script>
     let cacheCotacoes = [];
 
-    async function carregarHistorico() {
+  async function carregarHistorico() {
+      // 1. Pega o usuário logado atualmente
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+
+      // 2. Busca apenas as cotações deste usuário
       const { data, error } = await supabaseClient
         .from('cotacoes_historico')
         .select('*')
+        .eq('user_id', user.id)
         .order('criado_em', { ascending: false });
 
       const tbody = document.getElementById('listaHistorico');
       tbody.innerHTML = '';
 
-      if (error) {
-        tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Erro ao carregar histórico: ${error.message}</td></tr>`;
-        return;
-      }
-
-      if (!data || data.length === 0) {
+      if (error || !data || data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="text-center py-6 text-slate-400 text-xs">Nenhuma cotação encontrada no histórico.</td></tr>`;
         return;
       }
 
       cacheCotacoes = data;
-
       data.forEach(cotacao => {
         tbody.innerHTML += `
           <tr class="hover:bg-slate-50/80 transition cursor-pointer" onclick="abrirDetalhes('${cotacao.id}')">
