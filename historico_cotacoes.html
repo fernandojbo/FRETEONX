@@ -172,12 +172,12 @@
   <script>
     let cacheCotacoes = [];
 
-  async function carregarHistorico() {
+    async function carregarHistorico() {
       // 1. Pega o usuário logado atualmente
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (!user) return;
 
-      // 2. Busca apenas as cotações deste usuário
+      // 2. Busca estritamente apenas as cotações deste usuário
       const { data, error } = await supabaseClient
         .from('cotacoes_historico')
         .select('*')
@@ -220,7 +220,6 @@
       document.getElementById('modalValorCarga').innerText = `R$ ${Number(cotacao.valor_carga || 0).toFixed(2)}`;
       document.getElementById('modalValorFrete').innerText = `R$ ${Number(cotacao.valor_frete || 0).toFixed(2)}`;
 
-      // Monta a tabela de volumes detalhados vindos do JSONB
       const tbodyVolumes = document.getElementById('modalListaVolumes');
       tbodyVolumes.innerHTML = '';
 
