@@ -690,7 +690,11 @@ const { data: matrizTabelas, error } = await supabaseClient
         const cidadeOrigemTxt = document.getElementById('cidadeOrigem').innerText;
         const cidadeDestinoTxt = document.getElementById('cidadeDestino').innerText;
 
+        // Obtém o usuário logado para vincular a cotação ao SaaS dele
+        const { data: { user } } = await supabaseClient.auth.getUser();
+
         const dadosParaSalvar = {
+          user_id: user ? user.id : null,
           numero_cotacao: numeroCotacaoGerada,
           data: new Date().toLocaleDateString('pt-BR'),
           cep_origem: document.getElementById('cepOrigem').value,
