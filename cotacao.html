@@ -79,6 +79,10 @@
         <button id="menuHistorico" onclick="mudarAba('historico')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-xs transition text-left">
           <span>📋</span> Histórico de Cotações
         </button>
+        <!-- NOVO BOTÃO DE AUDITORIA ADICIONADO AO MENU -->
+        <button id="menuAuditoria" onclick="window.location.href='auditoria.html'" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition text-left">
+          <span>🔍</span> Auditoria
+        </button>
       </nav>
     </div>
 
@@ -198,7 +202,7 @@
 
   </main>
 
-  <!-- MODAL DE SOLICITAÇÃO DE COLETA (ATUALIZADO COM OS NOVOS CAMPOS) -->
+  <!-- MODAL DE SOLICITAÇÃO DE COLETA -->
   <div id="modalColeta" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 md:p-8 relative space-y-4 my-8">
       <div class="flex justify-between items-start border-b pb-3">
