@@ -198,9 +198,9 @@
 
   </main>
 
-  <!-- MODAL DE SOLICITAÇÃO DE COLETA -->
+  <!-- MODAL DE SOLICITAÇÃO DE COLETA (ATUALIZADO COM OS NOVOS CAMPOS) -->
   <div id="modalColeta" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 md:p-8 relative space-y-5 my-8">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 md:p-8 relative space-y-4 my-8">
       <div class="flex justify-between items-start border-b pb-3">
         <div>
           <span class="text-xs font-bold bg-indigo-100 text-indigo-700 px-2.5 py-1 rounded-md uppercase">Solicitação de Coleta</span>
@@ -209,11 +209,26 @@
         <button onclick="fecharModalColeta()" class="text-slate-400 hover:text-slate-600 font-bold text-lg p-1">✕</button>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <div class="space-y-3 text-xs">
         <div>
           <label class="block font-semibold text-slate-600 mb-1">UPLOAD DA DANFE (PDF)</label>
           <input type="file" id="inputDanfePdf" accept="application/pdf" class="w-full p-2 border rounded-lg bg-slate-50 text-slate-700 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-          <p class="text-[10px] text-slate-400 mt-1">Anexe o arquivo PDF da Nota Fiscal correspondente a esta carga.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">NÚMERO DA NOTA FISCAL (NF)</label>
+            <input type="text" id="coletaNotaFiscal" placeholder="Ex: 000859" class="w-full p-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">CNPJ DO PAGADOR</label>
+            <input type="text" id="coletaCnpjPagador" placeholder="00.000.000/0001-00" class="w-full p-2 border rounded-lg">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">ENDEREÇO COMPLETO DE COLETA</label>
+          <input type="text" id="coletaEndereco" placeholder="Rua, Número, Bairro, Cidade - UF" class="w-full p-2 border rounded-lg">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -234,11 +249,11 @@
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">OBSERVAÇÕES PARA A COLETA</label>
-          <textarea id="coletaObs" rows="3" placeholder="Instruções especiais (Ex: Docas apertadas, necessita paleteira...)" class="w-full p-2 border rounded-lg"></textarea>
+          <textarea id="coletaObs" rows="2" placeholder="Instruções especiais..." class="w-full p-2 border rounded-lg"></textarea>
         </div>
       </div>
 
-      <div class="pt-4 border-t flex justify-end gap-3">
+      <div class="pt-3 border-t flex justify-end gap-3">
         <button onclick="fecharModalColeta()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">Cancelar</button>
         <button id="btnConcluirColeta" onclick="concluirContratacaoComColeta()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition shadow-lg shadow-emerald-600/20">Concluir e Enviar Solicitação</button>
       </div>
@@ -267,6 +282,18 @@
           <p class="text-slate-400 font-semibold">DESTINO</p>
           <p id="modalDestino" class="font-bold text-slate-800 text-sm mt-0.5">-</p>
           <p id="modalCepDestino" class="text-slate-500 text-[11px]">-</p>
+        </div>
+      </div>
+
+      <!-- Detalhes de Nota e Endereço de Coleta -->
+      <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs">
+        <div>
+          <p class="text-slate-400 font-semibold">NÚMERO DA NF / CNPJ PAGADOR</p>
+          <p id="modalNfCnpj" class="font-bold text-slate-800 text-sm mt-0.5">-</p>
+        </div>
+        <div>
+          <p class="text-slate-400 font-semibold">ENDEREÇO DE COLETA</p>
+          <p id="modalEndColeta" class="font-bold text-slate-800 text-sm mt-0.5">-</p>
         </div>
       </div>
 
@@ -341,11 +368,9 @@
     }
 
     async function carregarHistorico() {
-      // Pega o usuário logado atualmente
       const { data: { user } } = await supabaseClient.auth.getUser();
       if (!user) return;
 
-      // Filtra estritamente pelo ID do usuário autenticado
       const { data, error } = await supabaseClient
         .from('cotacoes_historico')
         .select('*')
@@ -387,6 +412,8 @@
       document.getElementById('modalPrazo').innerText = `${cotacao.prazo || 0} dias úteis`;
       document.getElementById('modalValorCarga').innerText = `R$ ${Number(cotacao.valor_carga || 0).toFixed(2)}`;
       document.getElementById('modalValorFrete').innerText = `R$ ${Number(cotacao.valor_frete || 0).toFixed(2)}`;
+      document.getElementById('modalNfCnpj').innerText = `NF: ${cotacao.numero_nf || '-'} | CNPJ: ${cotacao.cnpj_pagador || '-'}`;
+      document.getElementById('modalEndColeta').innerText = cotacao.endereco_coleta || 'Não informado';
 
       const tbodyVolumes = document.getElementById('modalListaVolumes');
       tbodyVolumes.innerHTML = '';
@@ -408,7 +435,6 @@
 
     function fecharModal() { document.getElementById('modalDetalhes').classList.add('hidden'); }
 
-    // Funções utilitárias
     function parseNumeroSeguro(valor) {
       if (typeof valor === 'number') return valor;
       if (!valor) return 0;
@@ -514,20 +540,13 @@
       resultadoDiv.classList.add('hidden');
 
       const valorCargaNum = parseNumeroSeguro(inputValorCarga.value);
-      const distanciaKmNum = parseNumeroSeguro(document.getElementById('distanciaKm').value);
       const fatorCubagemNum = parseNumeroSeguro(document.getElementById('fatorCubagem').value) || 300;
       const pesoTaxavel = Math.max(totalPeso, totalCubagem * fatorCubagemNum);
       const cepDestinoInt = parseInt(inputCepDestino.value.replace(/\D/g, ""), 10);
 
-      // Obtém o usuário logado atualmente
       const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) { alert('Usuário não autenticado.'); return; }
 
-      if (!user) {
-        alert('Usuário não autenticado.');
-        return;
-      }
-
-      // Busca apenas as tabelas cadastradas por ESTE usuário específico
       const { data: matrizTabelas, error } = await supabaseClient
         .from('tabelas_frete')
         .select('*')
@@ -626,6 +645,9 @@
       document.getElementById('btnConcluirColeta').setAttribute('data-transportadora', JSON.stringify(transportadoraObj));
 
       document.getElementById('inputDanfePdf').value = '';
+      document.getElementById('coletaNotaFiscal').value = '';
+      document.getElementById('coletaCnpjPagador').value = '';
+      document.getElementById('coletaEndereco').value = '';
       document.getElementById('coletaData').value = '';
       document.getElementById('coletaHorario').value = '';
       document.getElementById('coletaContato').value = '';
@@ -650,6 +672,9 @@
 
       const transportadoraObj = transportadoraSelecionadaTemp || JSON.parse(rawData);
       const fileInput = document.getElementById('inputDanfePdf');
+      const numeroNf = document.getElementById('coletaNotaFiscal').value;
+      const cnpjPagador = document.getElementById('coletaCnpjPagador').value;
+      const enderecoColeta = document.getElementById('coletaEndereco').value;
       const dataColeta = document.getElementById('coletaData').value;
       const horarioColeta = document.getElementById('coletaHorario').value;
       const contatoColeta = document.getElementById('coletaContato').value;
@@ -712,6 +737,9 @@
           total_cubagem: transportadoraObj.totalCubagem,
           volumes: transportadoraObj.volumes,
           danfe_url: urlDanfe,
+          numero_nf: numeroNf,
+          cnpj_pagador: cnpjPagador,
+          endereco_coleta: enderecoColeta,
           coleta_data: dataColeta,
           coleta_horario: horarioColeta,
           coleta_contato: contatoColeta,
@@ -733,6 +761,9 @@
             numero_cotacao: numeroCotacaoGerada,
             cidade_origem: cidadeOrigemTxt,
             cidade_destino: cidadeDestinoTxt,
+            numero_nf: numeroNf || 'Não informada',
+            cnpj_pagador: cnpjPagador || 'Não informado',
+            endereco_coleta: enderecoColeta || 'A combinar',
             data_coleta: dataColeta || 'A combinar',
             horario_coleta: horarioColeta || 'A combinar',
             contato_coleta: contatoColeta || 'Não informado',
