@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRETEONX - Auditoria de Faturas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SheetJS (para leitura de Excel/CSV) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <script>
+    const SUPABASE_URL = 'https://xnfsmauxjixtpnxkjdbz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_jcYMIpCqR7zOEXW7CvThDQ_q-U2JW13';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function verificarAutenticacao() {
+        try {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (error || !session) {
+                window.location.href = "index.html";
+            } else {
+                const userEmailEl = document.getElementById('userEmailDisplay');
+                if (userEmailEl && session.user && session.user.email) {
+                    userEmailEl.innerText = session.user.email;
+                }
+            }
+        } catch (err) {
+            console.error("Erro ao verificar sessão:", err);
+            window.location.href = "index.html";
+        }
+    }
+
+    async function encerrarSessao() {
+        await supabaseClient.auth.signOut();
+        window.location.href = "index.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        verificarAutenticacao();
+    });
+  </script>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col md:flex-row">
+
+  <!-- MENU LATERAL -->
+  <aside class="w-full md:w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-6 shadow-xl shrink-0">
+    <div>
+      <div class="flex items-center gap-3 mb-8 px-2">
+        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-blue-500/30">F</div>
+        <div>
+          <h1 class="text-white font-extrabold text-base tracking-wider">FRETEONX</h1>
+          <p class="text-[10px] text-slate-400">Auditoria de Faturas</p>
+        </div>
+      </div>
+
+      <nav class="space-y-1.5">
+        <a href="cotacao.html" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition text-left">
+          <span>📦</span> Nova Cotação
+        </a>
+        <a href="cotacao.html" onclick="sessionStorage.setItem('abrirHistorico', 'true')" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-300 hover:text-white font-medium text-xs transition text-left">
+          <span>📋</span> Histórico de Cotações
+        </a>
+        <button class="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold text-xs shadow-lg shadow-blue-600/20 transition text-left">
+          <span>🔍</span> Auditoria de Faturas
+        </button>
+      </nav>
+    </div>
+
+    <div class="pt-6 border-t border-slate-800/80 space-y-4">
+      <div class="px-2">
+        <p class="text-[10px] text-slate-500 uppercase font-semibold">Usuário Conectado</p>
+        <p id="userEmailDisplay" class="text-xs font-bold text-slate-200 truncate mt-0.5">Carregando...</p>
+      </div>
+      <button onclick="encerrarSessao()" class="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-red-600/20 hover:text-red-400 border border-transparent text-slate-300 text-xs font-bold py-2.5 px-4 rounded-xl transition">
+        <span>🚪</span> Encerrar Sessão
+      </button>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="flex-1 p-6 md:p-10 flex items-start justify-center">
+    <div class="w-full max-w-4xl bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-slate-200 space-y-6">
+      
+      <div class="border-b pb-4">
+        <h2 class="text-xl font-bold text-slate-800">Auditoria de Faturas (De-Para de Cobrança)</h2>
+        <p class="text-xs text-slate-500 mt-1">Carregue a planilha enviada pela transportadora para cruzar os valores cobrados com as cotações aprovadas.</p>
+      </div>
+
+      <!-- ETAPA 1: UPLOAD DO ARQUIVO -->
+      <div id="etapaUpload" class="space-y-4">
+        <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-blue-500 transition bg-slate-50">
+          <span class="text-3xl">📊</span>
+          <p class="text-sm font-bold text-slate-700 mt-2">Selecione a fatura da transportadora (Excel ou CSV)</p>
+          <p class="text-xs text-slate-400 mt-1">Formatos aceitos: .xlsx, .xls, .csv</p>
+          <input type="file" id="arquivoFatura" accept=".xlsx, .xls, .csv" class="mt-4 text-xs" onchange="processarArquivoPlanilha(event)">
+        </div>
+      </div>
+
+      <!-- ETAPA 2: MAPEAMENTO DE COLUNAS (DE-PARA VISUAL) -->
+      <div id="etapaMapeamento" class="hidden space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-200">
+        <h3 class="text-sm font-bold text-slate-800">Mapeamento de Colunas (De-Para)</h3>
+        <p class="text-xs text-slate-500">Indique qual coluna da planilha da transportadora corresponde aos campos do sistema:</p>
+        
+        <div class="grid grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Coluna da Nota Fiscal (NF)</label>
+            <select id="colunaNf" class="w-full p-2.5 border rounded-lg bg-white"></select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-600 mb-1">Coluna do Valor Cobrado (R$)</label>
+            <select id="colunaValor" class="w-full p-2.5 border rounded-lg bg-white"></select>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button onclick="executarAuditoria()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl transition shadow-lg shadow-blue-600/20">
+            Executar Cruzamento e Auditoria
+          </button>
+        </div>
+      </div>
+
+      <!-- ETAPA 3: RESULTADOS DA AUDITORIA -->
+      <div id="etapaResultados" class="hidden space-y-4">
+        <div class="flex justify-between items-center">
+          <h3 class="text-sm font-bold text-slate-800 uppercase">Relatório de Divergências</h3>
+          <button onclick="resetarAuditoria()" class="text-xs text-blue-600 hover:underline font-semibold">Nova Auditoria</button>
+        </div>
+
+        <div class="overflow-x-auto border rounded-xl">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead class="bg-slate-50 text-slate-400 border-b uppercase">
+              <tr>
+                <th class="p-3">Nota Fiscal</th>
+                <th class="p-3 text-right">Valor Cotado</th>
+                <th class="p-3 text-right">Valor Cobrado</th>
+                <th class="p-3 text-right">Diferença</th>
+                <th class="p-3 text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaAuditoriaResultados" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let dadosPlanilhaBrutos = [];
+    let cabecalhosPlanilha = [];
+
+    function processarArquivoPlanilha(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        
+        // Converte para JSON bruto com cabeçalho
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        if (jsonData.length < 2) {
+          alert('A planilha parece estar vazia ou sem cabeçalho.');
+          return;
+        }
+
+        cabecalhosPlanilha = jsonData[0];
+        dadosPlanilhaBrutos = XLSX.utils.sheet_to_json(worksheet);
+
+        // Preenche os selects do De-Para
+        const selectNf = document.getElementById('colunaNf');
+        const selectValor = document.getElementById('colunaValor');
+        selectNf.innerHTML = '';
+        selectValor.innerHTML = '';
+
+        cabecalhosPlanilha.forEach((col, idx) => {
+          if (col) {
+            selectNf.innerHTML += `<option value="${col}">${col}</option>`;
+            selectValor.innerHTML += `<option value="${col}">${col}</option>`;
+          }
+        });
+
+        document.getElementById('etapaMapeamento').classList.remove('hidden');
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    async function executarAuditoria() {
+      const colNf = document.getElementById('colunaNf').value;
+      const colValor = document.getElementById('colunaValor').value;
+
+      if (!colNf || !colValor) {
+        alert('Selecione as colunas correspondentes.');
+        return;
+      }
+
+      const { data: { user } } = await supabaseClient.auth.getUser();
+      if (!user) return;
+
+      // Busca o histórico de cotações do usuário para cruzamento
+      const { data: historico, error } = await supabaseClient
+        .from('cotacoes_historico')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        alert('Erro ao buscar histórico para cruzamento.');
+        return;
+      }
+
+      // Cria um mapa de Notas Fiscais cadastradas no sistema
+      const mapaCotacoes = {};
+      (historico || []).forEach(c => {
+        if (c.numero_nf) {
+          mapaCotacoes[c.numero_nf.toString().trim()] = c;
+        }
+      });
+
+      const tbody = document.getElementById('tabelaAuditoriaResultados');
+      tbody.innerHTML = '';
+
+      dadosPlanilhaBrutos.forEach(row => {
+        const nfPlanilha = row[colNf] ? row[colNf].toString().trim() : '';
+        const valorCobrado = parseFloat(row[colValor]) || 0;
+
+        const cotacaoCorrespondente = mapaCotacoes[nfPlanilha];
+        let valorCotado = cotacaoCorrespondente ? Number(cotacaoCorrespondente.valor_frete) : 0;
+        let diferenca = valorCobrado - valorCotado;
+
+        let badgeStatus = '';
+        if (!cotacaoCorrespondente) {
+          badgeStatus = `<span class="bg-purple-100 text-purple-700 font-bold px-2 py-1 rounded">Não Localizada</span>`;
+        } else if (Math.abs(diferenca) < 0.05) {
+          badgeStatus = `<span class="bg-emerald-100 text-emerald-700 font-bold px-2 py-1 rounded">Conforme</span>`;
+        } else if (diferenca > 0) {
+          badgeStatus = `<span class="bg-red-100 text-red-700 font-bold px-2 py-1 rounded">Cobrança Maior (+R$ ${diferenca.toFixed(2)})</span>`;
+        } else {
+          badgeStatus = `<span class="bg-blue-100 text-blue-700 font-bold px-2 py-1 rounded">Economia</span>`;
+        }
+
+        tbody.innerHTML += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-bold text-slate-800">${nfPlanilha || 'N/D'}</td>
+            <td class="p-3 text-right text-slate-600">${cotacaoCorrespondente ? 'R$ ' + valorCotado.toFixed(2) : '-'}</td>
+            <td class="p-3 text-right font-extrabold text-slate-900">R$ ${valorCobrado.toFixed(2)}</td>
+            <td class="p-3 text-right font-semibold ${diferenca > 0 ? 'text-red-600' : 'text-slate-600'}">R$ ${diferenca.toFixed(2)}</td>
+            <td class="p-3 text-center">${badgeStatus}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('etapaMapeamento').classList.add('hidden');
+      document.getElementById('etapaResultados').classList.remove('hidden');
+    }
+
+    function resetarAuditoria() {
+      document.getElementById('arquivoFatura').value = '';
+      document.getElementById('etapaMapeamento').classList.add('hidden');
+      document.getElementById('etapaResultados').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
