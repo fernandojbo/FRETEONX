@@ -253,23 +253,7 @@ function limparValorNumerico(valor) {
       dadosPlanilhaBrutos.forEach(row => {
         const nfPlanilha = row[colNf] ? row[colNf].toString().trim() : '';
 
-        // Tratamento blindado para o valor da fatura
-        let valorBrutoStr = row[colValor] !== undefined ? row[colValor].toString().trim() : '0';
-        valorBrutoStr = valorBrutoStr.replace(/[R$\s]/g, '');
-        
-        // Se o valor contiver vírgula, substitui por ponto. Se não contiver vírgula nem ponto, divide por 100 (caso venha como 5927)
-        let valorCobrado = 0;
-        if (valorBrutoStr.includes(',')) {
-          valorBrutoStr = valorBrutoStr.replace(/\./g, '').replace(',', '.');
-          valorCobrado = parseFloat(valorBrutoStr) || 0;
-        } else if (valorBrutoStr.includes('.')) {
-          valorCobrado = parseFloat(valorBrutoStr) || 0;
-        } else {
-          // Caso venha inteiro (ex: 5927), divide por 100 para virar 59.27
-          const numInt = parseFloat(valorBrutoStr) || 0;
-          valorCobrado = numInt > 99 ? numInt / 100 : numInt;
-        }
-        
+       
         // Uso da função robusta para tratar o valor da coluna selecionada
         const valorCobrado = limparValorNumerico(row[colValor]);
 
