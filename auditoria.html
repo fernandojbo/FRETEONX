@@ -192,22 +192,24 @@
     }
 
     // Função auxiliar para tratar corretamente formatos numéricos e monetários
- function limparValorNumerico(valor) {
+function limparValorNumerico(valor) {
       if (valor === undefined || valor === null) return 0;
-      if (typeof valor === 'number') return valor;
       
-      let stringValor = valor.toString().trim();
+      // Se o SheetJS leu como número puro e ele for maior que 1000 mas sem casas decimais esperadas, 
+      // ou se for uma string contendo vírgula:
+      let stringValor = valor.toString().trim().replace(/[R$\s]/g, '');
       
-      // Remove símbolos de moeda e espaços
-      stringValor = stringValor.replace(/[R$\s]/g, '');
-      
-      // Se o formato for brasileiro com ponto de milhar e vírgula decimal (ex: 5.927,00)
-      if (stringValor.includes('.') && stringValor.includes(',')) {
+      if (stringValor.includes(',')) {
         stringValor = stringValor.replace(/\./g, '').replace(',', '.');
-      } 
-      // Se contiver apenas vírgula decimal (ex: 59,27)
-      else if (stringValor.includes(',')) {
-        stringValor = stringValor.replace(',', '.');
+      } else {
+        // Se vier como número inteiro (ex: 5927 representando 59,27 em alguns exports do SSW)
+        // Verificamos se faz sentido dividir por 100 caso não tenha ponto decimal
+        const numPuro = parseFloat(stringValor);
+        if (!isNaN(numPuro) && !stringValor.includes('.') && numPuro > 99) {
+          // Se o valor na tabela era 59,27 e veio 5927, ajustamos dividindo por 100
+          // (Remova esta linha se na sua planilha os valores reais forem inteiros altos)
+          // return numPuro / 100;
+        }
       }
       
       const numero = parseFloat(stringValor);
