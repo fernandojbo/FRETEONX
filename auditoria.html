@@ -191,6 +191,20 @@
       reader.readAsArrayBuffer(file);
     }
 
+    // Função auxiliar para tratar corretamente formatos numéricos e monetários
+    function limparValorNumerico(valor) {
+      if (valor === undefined || valor === null) return 0;
+      if (typeof valor === 'number') return valor;
+      let stringValor = valor.toString().trim().replace(/[R$\s]/g, '');
+      if (stringValor.includes(',') && stringValor.includes('.')) {
+        stringValor = stringValor.replace(/\./g, '').replace(',', '.');
+      } else if (stringValor.includes(',')) {
+        stringValor = stringValor.replace(',', '.');
+      }
+      const numero = parseFloat(stringValor);
+      return isNaN(numero) ? 0 : numero;
+    }
+
     async function executarAuditoria() {
       const colNf = document.getElementById('colunaNf').value;
       const colValor = document.getElementById('colunaValor').value;
@@ -227,7 +241,9 @@
 
       dadosPlanilhaBrutos.forEach(row => {
         const nfPlanilha = row[colNf] ? row[colNf].toString().trim() : '';
-        const valorCobrado = parseFloat(row[colValor]) || 0;
+        
+        // Uso da função robusta para tratar o valor da coluna selecionada
+        const valorCobrado = limparValorNumerico(row[colValor]);
 
         const cotacaoCorrespondente = mapaCotacoes[nfPlanilha];
         let valorCotado = cotacaoCorrespondente ? Number(cotacaoCorrespondente.valor_frete) : 0;
